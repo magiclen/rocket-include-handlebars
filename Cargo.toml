@@ -1,0 +1,20 @@
+[package]
+name = "rocket-include-handlebars"
+version = "0.1.0"
+authors = ["Magic Len <len@magiclen.org>"]
+repository = "https://github.com/magiclen/rocket-include-handlebars"
+homepage = "https://magiclen.org/rocket-include-handlebars"
+keywords = ["rocket", "server", "web", "static", "handlebars"]
+categories = ["parsing"]
+description= "This is a crate which provides macros `handlebars_resources_initialize!` and `handlebars_response!` to statically include HBS (Handlebars) files from your Rust project and make them be the HTTP response sources quickly."
+readme = "README.md"
+license = "MIT"
+
+[dependencies]
+rocket = "0.3.15"
+rocket_codegen = "0.3.15"
+lazy_static = "1.1.0"
+crc = "1.8.1"
+handlebars = "1.0.1"
+rocket-etag-if-none-match = "0.1.0"
+minify = "1.1.1"
