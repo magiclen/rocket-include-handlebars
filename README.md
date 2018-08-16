@@ -11,37 +11,50 @@ This is a crate which provides macros `handlebars_resources_initialize!` and `ha
 
 #[macro_use] extern crate lazy_static;
 
-#[macro_use] extern crate rocket_include_static_resources;
+#[macro_use] extern crate rocket_include_handlebars;
 extern crate rocket_etag_if_none_match;
 
 extern crate rocket;
-extern crate crc;
-extern crate mime_guess;
+extern crate handlebars;
 
-static_resources_initialize!(
-   "favicon", "included-static-resources/favicon.ico",
-   "favicon-png", "included-static-resources/favicon-16.png"
+handlebars_resources_initialize!(
+    "index", "included-handlebars/index.hbs",
+    "index-2", "included-handlebars/index2.hbs"
 );
 
+use std::collections::HashMap;
+
+use rocket::local::Client;
+use rocket::http::Status;
+
+use rocket_include_handlebars::HandlebarsResponse;
 use rocket_etag_if_none_match::EtagIfNoneMatch;
 
-use rocket::response::Response;
+#[get("/")]
+fn index() -> HandlebarsResponse {
+    let mut map = HashMap::new();
 
-#[get("/favicon.ico")]
-fn favicon(etag_if_none_match: EtagIfNoneMatch) -> Response<'static> {
-   static_response!(etag_if_none_match, "favicon")
+    map.insert("title", "Title");
+    map.insert("body", "Hello, world!");
+
+    handlebars_response!("index", &map)
 }
 
-#[get("/favicon.png")]
-fn favicon_png() -> Response<'static> {
-   static_response!("favicon-png")
+#[get("/2")]
+fn index_2() -> HandlebarsResponse {
+    let mut map = HashMap::new();
+
+    map.insert("title", "Title");
+    map.insert("body", "Hello, world!");
+
+    handlebars_response!("index-2", &map)
 }
 ```
 
-* `static_resources_initialize!` is used for including files into your executable binary file. You need to specify each file's ID and its path. For instance, the above example uses **favicon** to represent the file **included-static-resources/favicon.ico** and **favicon_png** to represent the file **included-static-resources/favicon.png**. An ID cannot be repeating.
-* `static_response!` is used for retrieving the file you input through the macro `static_resources_initialize!` as a Response instance into which three HTTP headers, **Content-Type**, **Content-Length** and **Etag**, will be automatically added.
+* `handlebars_resources_initialize!` is used for including HBS files into your executable binary file. You need to specify each file's ID and its path. For instance, the above example uses **index** to represent the file **included-handlebars/index.hbs** and **index-2** to represent the file **included-handlebars/index2.hbs**. An ID cannot be repeating.
+* `handlebars_response!` is used for retrieving and rendering the file you input through the macro `handlebars_resources_initialize!` as a `HandlebarsResponse` instance with rendered HTML. When its `respond_to` method is called, three HTTP headers, **Content-Type**, **Content-Length** and **Etag**, will be automatically added, and the rendered HTML can optionally be minified.
 
-Refer to `tests/favicon.rs` to see the example completely.
+Refer to `tests/index.rs` to see the example completely.
 
 ## License
 
