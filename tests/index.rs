@@ -39,7 +39,7 @@ fn index_2() -> HandlebarsResponse {
     let mut map = HashMap::new();
 
     map.insert("title", "Title");
-    map.insert("body", "Hello, world!");
+    map.insert("placeholder", "Hello, \"world!\"");
 
     handlebars_response!("index-2", &map)
 }
@@ -75,7 +75,7 @@ fn test_index_2() {
 
     let mut response = req.dispatch();
 
-    assert_eq!(response.body_string(), Some("<!DOCTYPE html><html><head><title>Title2</title></head><body>Hello, world!</body>".to_string()));
+    assert_eq!(response.body_string(), Some("<!DOCTYPE html><html><head><title>Title</title></head><body><input type=\"text\" placeholder=\"Hello, &quot;world!&quot;\"></body>".to_string()));
     assert_eq!(response.status(), Status::Ok);
     assert_eq!(response.content_type().unwrap().to_string(), "text/html");
 }
