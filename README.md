@@ -15,7 +15,7 @@ This is a crate which provides macros `handlebars_resources_initialize!` and `ha
 extern crate rocket_etag_if_none_match;
 
 extern crate rocket;
-extern crate handlebars;
+#[macro_use] extern crate handlebars;
 
 handlebars_resources_initialize!(
     "index", "included-handlebars/index.hbs",
