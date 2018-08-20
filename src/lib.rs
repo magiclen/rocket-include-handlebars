@@ -13,7 +13,7 @@
 //! extern crate rocket_etag_if_none_match;
 //!
 //! extern crate rocket;
-//! extern crate handlebars;
+//! #[macro_use] extern crate handlebars;
 //!
 //! handlebars_resources_initialize!(
 //!     "index", "included-handlebars/index.hbs",
@@ -58,6 +58,7 @@ extern crate crc;
 extern crate rocket;
 extern crate rocket_etag_if_none_match;
 extern crate minify;
+extern crate handlebars;
 
 use crc::{crc64, Hasher64};
 
@@ -137,6 +138,12 @@ macro_rules! handlebars_resources_initialize {
                             reg.register_template_string($id, template).unwrap();
                         }
                     )*
+
+                    handlebars_helper!(inc: |x: i64| x + 1);
+                    handlebars_helper!(inc_str: |x: str| x.parse::<i64>().unwrap() + 1i64);
+
+                    reg.register_helper("inc", Box::new(inc));
+                    reg.register_helper("inc_str", Box::new(inc_str));
 
                     reg
                 }

@@ -9,6 +9,7 @@ extern crate rocket_include_handlebars;
 extern crate rocket_etag_if_none_match;
 
 extern crate rocket;
+#[macro_use]
 extern crate handlebars;
 
 handlebars_resources_initialize!(
@@ -40,6 +41,7 @@ fn index_2() -> HandlebarsResponse {
 
     map.insert("title", "Title");
     map.insert("placeholder", "Hello, \"world!\"");
+    map.insert("id", "0");
 
     handlebars_response!("index-2", &map)
 }
@@ -75,7 +77,7 @@ fn test_index_2() {
 
     let mut response = req.dispatch();
 
-    assert_eq!(response.body_string(), Some("<!DOCTYPE html><html><head><title>Title</title></head><body><input type=\"text\" placeholder=\"Hello, &quot;world!&quot;\"></body>".to_string()));
+    assert_eq!(response.body_string(), Some("<!DOCTYPE html><html><head><title>Title</title></head><body><input id=\"input-1\" type=\"text\" placeholder=\"Hello, &quot;world!&quot;\"></body>".to_string()));
     assert_eq!(response.status(), Status::Ok);
     assert_eq!(response.content_type().unwrap().to_string(), "text/html");
 }
