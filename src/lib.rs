@@ -140,19 +140,16 @@ macro_rules! handlebars_resources_initialize {
                     )*
 
                     handlebars_helper!(inc: |x: i64| x + 1);
-                    handlebars_helper!(inc_str: |x: str| x.parse::<i64>().unwrap() + 1i64);
 
-                    handlebars_helper!(eq: |x: i64, y: i64| x == y);
+                    handlebars_helper!(dec: |x: i64| x - 1);
+
                     handlebars_helper!(eq_str: |x: str, y: str| x == y);
 
-                    handlebars_helper!(ne: |x: i64, y: i64| x != y);
                     handlebars_helper!(ne_str: |x: str, y: str| x != y);
 
                     reg.register_helper("inc", Box::new(inc));
-                    reg.register_helper("inc_str", Box::new(inc_str));
-                    reg.register_helper("eq", Box::new(eq));
+                    reg.register_helper("dec", Box::new(dec));
                     reg.register_helper("eq_str", Box::new(eq_str));
-                    reg.register_helper("ne", Box::new(ne));
                     reg.register_helper("ne_str", Box::new(ne_str));
 
                     reg
