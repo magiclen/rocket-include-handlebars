@@ -56,9 +56,10 @@
 
 extern crate crc;
 extern crate rocket;
-extern crate rocket_etag_if_none_match;
-extern crate minify;
-extern crate handlebars;
+
+pub extern crate rocket_etag_if_none_match;
+pub extern crate html_minifier;
+pub extern crate handlebars;
 
 use crc::{crc64, Hasher64};
 
@@ -68,7 +69,6 @@ use rocket::http::{Status, hyper::header::{ETag, EntityTag}};
 
 use std::io::Cursor;
 use rocket_etag_if_none_match::EtagIfNoneMatch;
-use minify::html::minify;
 
 pub struct HandlebarsResponse {
     pub html: String,
@@ -101,7 +101,7 @@ impl<'a> Responder<'a> for HandlebarsResponse {
             response.status(Status::NotModified);
         } else {
             let html = if self.minify {
-                minify(&self.html)
+                html_minifier::minify(&self.html).unwrap()
             } else {
                 self.html
             };
