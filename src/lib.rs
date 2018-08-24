@@ -54,14 +54,14 @@
 //!
 //! Refer to `tests/index.rs` to see the example completely.
 
-extern crate crc;
+extern crate crc_any;
 extern crate rocket;
 
 pub extern crate rocket_etag_if_none_match;
 pub extern crate html_minifier;
 pub extern crate handlebars;
 
-use crc::{crc64, Hasher64};
+use crc_any::CRC;
 
 use rocket::request::Request;
 use rocket::response::{self, Response, Responder};
@@ -79,10 +79,10 @@ pub struct HandlebarsResponse {
 
 impl<'a> Responder<'a> for HandlebarsResponse {
     fn respond_to(self, _: &Request) -> response::Result<'a> {
-        let mut digest = crc64::Digest::new(crc64::ECMA);
-        digest.write(self.html.as_bytes());
+        let mut crc64ecma = CRC::crc64ecma();
+        crc64ecma.digest(self.html.as_bytes());
 
-        let crc64 = digest.sum64();
+        let crc64 = crc64ecma.get_crc();
         let my_etag = format!("{:X}", crc64);
 
         let etag = self.etag.etag;
