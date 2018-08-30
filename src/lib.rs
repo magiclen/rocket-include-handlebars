@@ -60,6 +60,7 @@ extern crate rocket;
 pub extern crate rocket_etag_if_none_match;
 pub extern crate html_minifier;
 pub extern crate handlebars;
+pub extern crate json_gettext;
 
 use crc_any::CRC;
 
