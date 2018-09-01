@@ -126,9 +126,9 @@ pub const HANDLEBARS_RESPONSE_CHUNK_SIZE: u64 = 4096;
 macro_rules! handlebars_resources_initialize {
     ( $($id:expr, $path:expr), * ) => {
         lazy_static! {
-            static ref HANDLEBARS_REG: self::handlebars::Handlebars = {
+            static ref HANDLEBARS_REG: ::rocket_include_handlebars::handlebars::Handlebars = {
                 {
-                    use self::handlebars::Handlebars;
+                    use ::rocket_include_handlebars::handlebars::Handlebars;
 
                     let mut reg = Handlebars::new();
 
@@ -166,7 +166,7 @@ macro_rules! handlebars_resources_initialize {
 macro_rules! handlebars_response {
     ( $id:expr, $data:expr ) => {
         {
-            use self::rocket_include_handlebars::HandlebarsResponse;
+            use ::rocket_include_handlebars::HandlebarsResponse;
 
             let html = HANDLEBARS_REG.render($id, $data).unwrap();
 
@@ -179,7 +179,7 @@ macro_rules! handlebars_response {
     };
     ( $etag_if_none_match:expr, $id:expr, $data:expr ) => {
         {
-            use self::rocket_include_handlebars::HandlebarsResponse;
+            use ::rocket_include_handlebars::HandlebarsResponse;
 
             let html = HANDLEBARS_REG.render($id, $data).unwrap();
 
