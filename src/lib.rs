@@ -172,7 +172,7 @@ macro_rules! handlebars_response {
 
             HandlebarsResponse{
                 html,
-                etag: EtagIfNoneMatch {etag: None},
+                etag: ::rocket_include_handlebars::rocket_etag_if_none_match::EtagIfNoneMatch {etag: None},
                 minify: true,
             }
         }
