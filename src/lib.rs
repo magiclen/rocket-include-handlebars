@@ -128,7 +128,7 @@ pub const HANDLEBARS_RESPONSE_CHUNK_SIZE: u64 = 4096;
 #[macro_export]
 macro_rules! handlebars_resources_initialize {
     ( $($id:expr, $path:expr), * ) => {
-        lazy_static_include_str!(HANDLEBARS_REG_DATA $(, $path)* );
+        lazy_static_include_str_vec!(HANDLEBARS_REG_DATA $(, $path)* );
 
         lazy_static! {
             static ref HANDLEBARS_REG: ::rocket_include_handlebars::handlebars::Handlebars = {
