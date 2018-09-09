@@ -8,6 +8,7 @@
 //! #![plugin(rocket_codegen)]
 //!
 //! #[macro_use] extern crate lazy_static;
+//! #[macro_use] extern crate lazy_static_include;
 //!
 //! #[macro_use] extern crate rocket_include_handlebars;
 //! extern crate rocket_etag_if_none_match;
@@ -53,6 +54,8 @@
 //! * `handlebars_response!` is used for retrieving and rendering the file you input through the macro `handlebars_resources_initialize!` as a `HandlebarsResponse` instance with rendered HTML. When its `respond_to` method is called, three HTTP headers, **Content-Type**, **Content-Length** and **Etag**, will be automatically added, and the rendered HTML can optionally be minified.
 //!
 //! Refer to `tests/index.rs` to see the example completely.
+//!
+//! In order to reduce the compilation time, files are compiled into your executable binary file together, only when you are using the **release** profile.
 
 extern crate crc_any;
 extern crate rocket;
@@ -125,6 +128,8 @@ pub const HANDLEBARS_RESPONSE_CHUNK_SIZE: u64 = 4096;
 #[macro_export]
 macro_rules! handlebars_resources_initialize {
     ( $($id:expr, $path:expr), * ) => {
+        lazy_static_include_str!(HANDLEBARS_REG_DATA $(, $path)* );
+
         lazy_static! {
             static ref HANDLEBARS_REG: ::rocket_include_handlebars::handlebars::Handlebars = {
                 {
@@ -132,9 +137,13 @@ macro_rules! handlebars_resources_initialize {
 
                     let mut reg = Handlebars::new();
 
+                    let mut p = 0usize;
+
                     $(
                         {
-                            let template = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/", $path));
+                            let template = HANDLEBARS_REG_DATA[p];
+
+                            p += 1;
 
                             reg.register_template_string($id, template).unwrap();
                         }

@@ -11,6 +11,8 @@ This is a crate which provides macros `handlebars_resources_initialize!` and `ha
 
 #[macro_use] extern crate lazy_static;
 
+#[macro_use] extern crate lazy_static_include;
+
 #[macro_use] extern crate rocket_include_handlebars;
 extern crate rocket_etag_if_none_match;
 
@@ -55,6 +57,8 @@ fn index_2() -> HandlebarsResponse {
 * `handlebars_response!` is used for retrieving and rendering the file you input through the macro `handlebars_resources_initialize!` as a `HandlebarsResponse` instance with rendered HTML. When its `respond_to` method is called, three HTTP headers, **Content-Type**, **Content-Length** and **Etag**, will be automatically added, and the rendered HTML can optionally be minified.
 
 Refer to `tests/index.rs` to see the example completely.
+
+In order to reduce the compilation time, files are compiled into your executable binary file together, only when you are using the **release** profile.
 
 ## License
 
