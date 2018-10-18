@@ -34,23 +34,34 @@ use json_gettext::Value;
 
 #[get("/")]
 fn index(etag_if_none_match: EtagIfNoneMatch) -> HandlebarsResponse {
-    let mut map = HashMap::new();
+    handlebars_response_static!(
+        etag_if_none_match,
+        "index".to_string(),
+        {
+            let mut map = HashMap::new();
 
-    map.insert("title", "Title");
-    map.insert("body", "Hello, world!");
+            map.insert("title", "Title");
+            map.insert("body", "Hello, world!");
 
-    handlebars_response!(etag_if_none_match, "index", &map)
+            handlebars_response!(etag_if_none_match, "index", &map)
+        }
+    )
 }
 
 #[get("/2")]
 fn index_2() -> HandlebarsResponse {
-    let mut map = HashMap::new();
+    handlebars_response_static!(
+        "index2".to_string(),
+        {
+            let mut map = HashMap::new();
 
-    map.insert("title", Value::from_str("Title"));
-    map.insert("placeholder", Value::from_str("Hello, \"world!\""));
-    map.insert("id", Value::from_u64(0));
+            map.insert("title", Value::from_str("Title"));
+            map.insert("placeholder", Value::from_str("Hello, \"world!\""));
+            map.insert("id", Value::from_u64(0));
 
-    handlebars_response!("index-2", &map)
+            handlebars_response!("index-2", &map)
+        }
+    )
 }
 
 #[test]
@@ -61,6 +72,14 @@ fn test_index() {
         .mount("/", routes![index]);
 
     let client = Client::new(rocket).expect("valid rocket instance");
+
+    let req = client.get("/");
+
+    let mut response = req.dispatch();
+
+    assert_eq!(response.body_string(), Some("<!DOCTYPE html><html><head><title>Title</title></head><body>Hello, world!</body>".to_string()));
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(response.content_type().unwrap().to_string(), "text/html");
 
     let req = client.get("/");
 
