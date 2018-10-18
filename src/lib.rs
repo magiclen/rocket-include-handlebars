@@ -190,7 +190,7 @@ macro_rules! handlebars_resources_initialize {
                 }
             };
 
-            static ref HANDLEBARS_STATIC: std::sync::Mutex<std::collections::HashMap<String, (String, bool, String)>> = {
+            static ref HANDLEBARS_STATIC: std::sync::Mutex<std::collections::HashMap<String, (String, String)>> = {
                 std::sync::Mutex::new(std::collections::HashMap::new())
             };
         }
@@ -235,16 +235,21 @@ macro_rules! handlebars_response {
 macro_rules! handlebars_response_static {
     ( $key:expr, $gen:block ) => {
         {
-            if let Some((html, minify, etag)) = HANDLEBARS_STATIC.lock().unwrap().get($key.as_str()) {
+            if let Some((html, etag)) = HANDLEBARS_STATIC.lock().unwrap().get($key.as_str()) {
                 return HandlebarsResponse{
                     html: html.clone(),
                     etag: ::rocket_include_handlebars::rocket_etag_if_none_match::EtagIfNoneMatch {etag: None},
                     my_etag: Some(etag.clone()),
-                    minify: *minify,
+                    minify: false,
                 };
             }
 
             let mut res = $gen;
+
+            if res.minify {
+                res.html = html_minifier::minify(&res.html).unwrap();
+                res.minify = false;
+            }
 
             let my_etag = match res.my_etag {
                 Some(my_etag) => my_etag,
@@ -256,7 +261,7 @@ macro_rules! handlebars_response_static {
                 }
             };
 
-            HANDLEBARS_STATIC.lock().unwrap().insert($key, (res.html.clone(), res.minify, my_etag.clone()));
+            HANDLEBARS_STATIC.lock().unwrap().insert($key, (res.html.clone(), my_etag.clone()));
 
             res.my_etag = Some(my_etag);
 
@@ -265,16 +270,21 @@ macro_rules! handlebars_response_static {
     };
     ( $etag_if_none_match:expr, $key:expr, $gen:block ) => {
         {
-            if let Some((html, minify, etag)) = HANDLEBARS_STATIC.lock().unwrap().get($key.as_str()) {
+            if let Some((html, etag)) = HANDLEBARS_STATIC.lock().unwrap().get($key.as_str()) {
                 return HandlebarsResponse{
                     html: html.clone(),
                     etag: $etag_if_none_match,
                     my_etag: Some(etag.clone()),
-                    minify: *minify,
+                    minify: false,
                 };
             }
 
             let mut res = $gen;
+
+            if res.minify {
+                res.html = html_minifier::minify(&res.html).unwrap();
+                res.minify = false;
+            }
 
             let my_etag = match res.my_etag {
                 Some(my_etag) => my_etag,
@@ -286,7 +296,7 @@ macro_rules! handlebars_response_static {
                 }
             };
 
-            HANDLEBARS_STATIC.lock().unwrap().insert($key, (res.html.clone(), res.minify, my_etag.clone()));
+            HANDLEBARS_STATIC.lock().unwrap().insert($key, (res.html.clone(), my_etag.clone()));
 
             res.my_etag = Some(my_etag);
 
