@@ -73,15 +73,15 @@
 //!
 //! In order to reduce the compilation time, files are compiled into your executable binary file together, only when you are using the **release** profile.
 
-extern crate crc_any;
 extern crate rocket;
 
+pub extern crate crc_any;
 pub extern crate rocket_etag_if_none_match;
 pub extern crate html_minifier;
 pub extern crate handlebars;
 pub extern crate json_gettext;
 
-pub use crc_any::CRC;
+use crc_any::CRC;
 
 use rocket::request::Request;
 use rocket::response::{self, Response, Responder};
@@ -247,14 +247,14 @@ macro_rules! handlebars_response_static {
             let mut res = $gen;
 
             if res.minify {
-                res.html = html_minifier::minify(&res.html).unwrap();
+                res.html = ::rocket_include_handlebars::html_minifier::minify(&res.html).unwrap();
                 res.minify = false;
             }
 
             let my_etag = match res.my_etag {
                 Some(my_etag) => my_etag,
                 None => {
-                    let mut crc64ecma = ::rocket_include_handlebars::CRC::crc64ecma();
+                    let mut crc64ecma = ::rocket_include_handlebars::crc_any::CRC::crc64ecma();
                     crc64ecma.digest(res.html.as_bytes());
                     let crc64 = crc64ecma.get_crc();
                     format!("{:X}", crc64)
@@ -282,14 +282,14 @@ macro_rules! handlebars_response_static {
             let mut res = $gen;
 
             if res.minify {
-                res.html = html_minifier::minify(&res.html).unwrap();
+                res.html = ::rocket_include_handlebars::html_minifier::minify(&res.html).unwrap();
                 res.minify = false;
             }
 
             let my_etag = match res.my_etag {
                 Some(my_etag) => my_etag,
                 None => {
-                    let mut crc64ecma = ::rocket_include_handlebars::CRC::crc64ecma();
+                    let mut crc64ecma = ::rocket_include_handlebars::crc_any::CRC::crc64ecma();
                     crc64ecma.digest(res.html.as_bytes());
                     let crc64 = crc64ecma.get_crc();
                     format!("{:X}", crc64)
