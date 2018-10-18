@@ -43,7 +43,7 @@ fn index(etag_if_none_match: EtagIfNoneMatch) -> HandlebarsResponse {
             map.insert("title", "Title");
             map.insert("body", "Hello, world!");
 
-            handlebars_response!(etag_if_none_match, "index", &map)
+            handlebars_response!("index", &map)
         }
     )
 }

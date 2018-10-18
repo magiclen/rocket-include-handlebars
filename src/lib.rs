@@ -235,72 +235,78 @@ macro_rules! handlebars_response {
 macro_rules! handlebars_response_static {
     ( $key:expr, $gen:block ) => {
         {
-            if let Some((html, etag)) = HANDLEBARS_STATIC.lock().unwrap().get($key.as_str()) {
-                return HandlebarsResponse{
+            if HANDLEBARS_STATIC.lock().unwrap().contains_key($key.as_str()) {
+                let map = HANDLEBARS_STATIC.lock().unwrap();
+                let (html, etag) = map.get($key.as_str()).unwrap();
+                HandlebarsResponse{
                     html: html.clone(),
                     etag: ::rocket_include_handlebars::rocket_etag_if_none_match::EtagIfNoneMatch {etag: None},
                     my_etag: Some(etag.clone()),
                     minify: false,
-                };
-            }
-
-            let mut res = $gen;
-
-            if res.minify {
-                res.html = ::rocket_include_handlebars::html_minifier::minify(&res.html).unwrap();
-                res.minify = false;
-            }
-
-            let my_etag = match res.my_etag {
-                Some(my_etag) => my_etag,
-                None => {
-                    let mut crc64ecma = ::rocket_include_handlebars::crc_any::CRC::crc64ecma();
-                    crc64ecma.digest(res.html.as_bytes());
-                    let crc64 = crc64ecma.get_crc();
-                    format!("{:X}", crc64)
                 }
-            };
+            } else{
+                let mut res = $gen;
 
-            HANDLEBARS_STATIC.lock().unwrap().insert($key, (res.html.clone(), my_etag.clone()));
+                if res.minify {
+                    res.html = ::rocket_include_handlebars::html_minifier::minify(&res.html).unwrap();
+                    res.minify = false;
+                }
 
-            res.my_etag = Some(my_etag);
+                let my_etag = match res.my_etag {
+                    Some(my_etag) => my_etag,
+                    None => {
+                        let mut crc64ecma = ::rocket_include_handlebars::crc_any::CRC::crc64ecma();
+                        crc64ecma.digest(res.html.as_bytes());
+                        let crc64 = crc64ecma.get_crc();
+                        format!("{:X}", crc64)
+                    }
+                };
 
-            res
+                HANDLEBARS_STATIC.lock().unwrap().insert($key, (res.html.clone(), my_etag.clone()));
+
+                res.my_etag = Some(my_etag);
+
+                res
+            }
         }
     };
     ( $etag_if_none_match:expr, $key:expr, $gen:block ) => {
         {
-            if let Some((html, etag)) = HANDLEBARS_STATIC.lock().unwrap().get($key.as_str()) {
-                return HandlebarsResponse{
+            if HANDLEBARS_STATIC.lock().unwrap().contains_key($key.as_str()) {
+                let map = HANDLEBARS_STATIC.lock().unwrap();
+                let (html, etag) = map.get($key.as_str()).unwrap();
+                HandlebarsResponse{
                     html: html.clone(),
                     etag: $etag_if_none_match,
                     my_etag: Some(etag.clone()),
                     minify: false,
-                };
-            }
-
-            let mut res = $gen;
-
-            if res.minify {
-                res.html = ::rocket_include_handlebars::html_minifier::minify(&res.html).unwrap();
-                res.minify = false;
-            }
-
-            let my_etag = match res.my_etag {
-                Some(my_etag) => my_etag,
-                None => {
-                    let mut crc64ecma = ::rocket_include_handlebars::crc_any::CRC::crc64ecma();
-                    crc64ecma.digest(res.html.as_bytes());
-                    let crc64 = crc64ecma.get_crc();
-                    format!("{:X}", crc64)
                 }
-            };
+            } else{
+                let mut res = $gen;
 
-            HANDLEBARS_STATIC.lock().unwrap().insert($key, (res.html.clone(), my_etag.clone()));
+                if res.minify {
+                    res.html = ::rocket_include_handlebars::html_minifier::minify(&res.html).unwrap();
+                }
 
-            res.my_etag = Some(my_etag);
+                let my_etag = match res.my_etag {
+                    Some(my_etag) => my_etag,
+                    None => {
+                        let mut crc64ecma = ::rocket_include_handlebars::crc_any::CRC::crc64ecma();
+                        crc64ecma.digest(res.html.as_bytes());
+                        let crc64 = crc64ecma.get_crc();
+                        format!("{:X}", crc64)
+                    }
+                };
 
-            res
+                HANDLEBARS_STATIC.lock().unwrap().insert($key, (res.html.clone(), my_etag.clone()));
+
+                HandlebarsResponse{
+                    html: res.html,
+                    etag: $etag_if_none_match,
+                    my_etag: Some(my_etag),
+                    minify: false,
+                }
+            }
         }
     };
 }
