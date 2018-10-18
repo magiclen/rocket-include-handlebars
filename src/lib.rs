@@ -235,7 +235,7 @@ macro_rules! handlebars_response {
 macro_rules! handlebars_response_static {
     ( $key:expr, $gen:block ) => {
         {
-            if let Some((html, minify, etag)) = HANDLEBARS_STATIC.lock().unwrap().get($key.as_ref() as &str) {
+            if let Some((html, minify, etag)) = HANDLEBARS_STATIC.lock().unwrap().get($key.as_str()) {
                 return HandlebarsResponse{
                     html: html.clone(),
                     etag: ::rocket_include_handlebars::rocket_etag_if_none_match::EtagIfNoneMatch {etag: None},
@@ -265,7 +265,7 @@ macro_rules! handlebars_response_static {
     };
     ( $etag_if_none_match:expr, $key:expr, $gen:block ) => {
         {
-            if let Some((html, minify, etag)) = HANDLEBARS_STATIC.lock().unwrap().get($key.as_ref() as &str) {
+            if let Some((html, minify, etag)) = HANDLEBARS_STATIC.lock().unwrap().get($key.as_str()) {
                 return HandlebarsResponse{
                     html: html.clone(),
                     etag: $etag_if_none_match,
