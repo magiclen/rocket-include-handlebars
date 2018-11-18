@@ -1,6 +1,6 @@
 [package]
 name = "rocket-include-handlebars"
-version = "0.6.4"
+version = "0.7.0"
 authors = ["Magic Len <len@magiclen.org>"]
 repository = "https://github.com/magiclen/rocket-include-handlebars"
 homepage = "https://magiclen.org/rocket-include-handlebars"
@@ -10,15 +10,20 @@ description= "This is a crate which provides macros `handlebars_resources_initia
 readme = "README.md"
 license = "MIT"
 
+[badges]
+travis-ci = { repository = "magiclen/rocket-include-handlebars", branch = "master" }
+
 [dependencies]
-rocket = "0.3.16"
-lazy_static = "1.1.0"
-lazy-static-include = "1.2"
+rocket = ">=0.3.16"
 crc-any = "1.0.0"
-handlebars = "1.0.1"
-rocket-etag-if-none-match = "0.1.0"
-html-minifier = "1.1.2"
-json-gettext = "1.5.2"
+handlebars = "1.1.0"
+html-minifier = "1.1.3"
+
+rocket-etag-if-none-match = "0.2.1"
 
 [dev-dependencies]
-rocket_codegen = "0.3.16"
+rocket_codegen = ">=0.3.16"
+lazy_static = "1.1.0"
+lazy-static-include = "1.2"
+
+json-gettext = "2.1.0"
