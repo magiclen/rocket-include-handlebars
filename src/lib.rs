@@ -6,8 +6,7 @@ This is a crate which provides macros `handlebars_resources_initialize!` and `ha
 ## Example
 
 ```rust
-#![feature(plugin)]
-#![plugin(rocket_codegen)]
+#![feature(proc_macro_hygiene, decl_macro)]
 
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate lazy_static_include;
@@ -16,7 +15,7 @@ This is a crate which provides macros `handlebars_resources_initialize!` and `ha
 
 #[macro_use] extern crate rocket_include_handlebars;
 
-extern crate rocket;
+#[macro_use] extern crate rocket;
 
 use std::collections::HashMap;
 
