@@ -1,4 +1,4 @@
-/// Used in the fairing of `Template` to include Handlebars files into your executable binary file. You need to specify each file's name and its path.
+/// Used in the fairing of `HandlebarsResponse` to include Handlebars files into your executable binary file. You need to specify each file's name and its path.
 #[macro_export]
 #[cfg(debug_assertions)]
 macro_rules! handlebars_resources_initialize {
@@ -15,7 +15,7 @@ macro_rules! handlebars_resources_initialize {
     };
 }
 
-/// Used in the fairing of `Template` to include Handlebars files into your executable binary file. You need to specify each file's name and its path.
+/// Used in the fairing of `HandlebarsResponse` to include Handlebars files into your executable binary file. You need to specify each file's name and its path.
 #[macro_export]
 #[cfg(not(debug_assertions))]
 macro_rules! handlebars_resources_initialize {
