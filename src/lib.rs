@@ -90,6 +90,7 @@ use rocket::http::{Status, hyper::header::ETag};
 use std::io::Cursor;
 pub use rocket_etag_if_none_match::{EntityTag, EtagIfNoneMatch};
 
+#[derive(Debug)]
 pub struct HandlebarsResponse {
     /// The HTML code.
     pub html: String,
@@ -128,8 +129,7 @@ impl<'a> Responder<'a> for HandlebarsResponse {
 
             response
                 .header(ETag(etag))
-                .raw_header("Content-Type", "text/html")
-                .raw_header("Content-Length", html.len().to_string())
+                .raw_header("Content-Type", "text/html; charset=utf-8")
                 .sized_body(Cursor::new(html));
         }
 
