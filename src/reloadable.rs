@@ -35,7 +35,7 @@ impl ReloadableHandlebars {
 
         let mtime = metadata.modified().ok();
 
-        self.files.insert(name, (file_path.to_path_buf(), mtime));
+        self.files.insert(name, (file_path, mtime));
 
         Ok(())
     }
