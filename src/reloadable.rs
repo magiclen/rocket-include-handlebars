@@ -10,7 +10,7 @@ use crate::handlebars::TemplateFileError;
 /// Reloadable Handlebars.
 pub struct ReloadableHandlebars {
     handlebars: Handlebars,
-    files: HashMap<String, (PathBuf, Option<SystemTime>)>,
+    files: HashMap<&'static str, (PathBuf, Option<SystemTime>)>,
 }
 
 impl ReloadableHandlebars {
@@ -25,11 +25,10 @@ impl ReloadableHandlebars {
 
     #[inline]
     /// Register a template from a path and it can be reloaded automatically.
-    pub fn register_template_file<S: Into<String>, P: Into<PathBuf>>(&mut self, name: S, file_path: P) -> Result<(), TemplateFileError> {
-        let name = name.into();
+    pub fn register_template_file<P: Into<PathBuf>>(&mut self, name: &'static str, file_path: P) -> Result<(), TemplateFileError> {
         let file_path = file_path.into();
 
-        self.handlebars.register_template_file(name.as_str(), &file_path)?;
+        self.handlebars.register_template_file(name, &file_path)?;
 
         let metadata = file_path.metadata().unwrap();
 
@@ -87,7 +86,7 @@ impl ReloadableHandlebars {
             };
 
             if reload {
-                self.handlebars.register_template_file(name.as_str(), &file_path)?;
+                self.handlebars.register_template_file(name, &file_path)?;
 
                 *mtime = new_mtime;
             }
