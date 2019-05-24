@@ -10,6 +10,7 @@ This is a crate which provides macros `handlebars_resources_initialize!` and `ha
 See `examples`.
 */
 
+mod reloadable;
 mod manager;
 mod fairing;
 mod macros;
@@ -44,8 +45,9 @@ use rocket::fairing::Fairing;
 
 pub use rocket_etag_if_none_match::{EntityTag, EtagIfNoneMatch};
 
-use fairing::HandlebarsResponseFairing;
+pub use reloadable::ReloadableHandlebars;
 pub use manager::HandlebarsContextManager;
+use fairing::HandlebarsResponseFairing;
 
 #[inline]
 fn compute_html_etag(html: &str) -> EntityTag {
@@ -110,7 +112,7 @@ impl HandlebarsResponse {
     #[cfg(debug_assertions)]
     #[inline]
     /// Create the fairing of `HandlebarsResponse`.
-    pub fn fairing<F>(f: F) -> impl Fairing where F: Fn(&mut MutexGuard<Handlebars>) + Send + Sync + 'static {
+    pub fn fairing<F>(f: F) -> impl Fairing where F: Fn(&mut MutexGuard<ReloadableHandlebars>) + Send + Sync + 'static {
         HandlebarsResponseFairing {
             custom_callback: Box::new(f)
         }
