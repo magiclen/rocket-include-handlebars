@@ -34,7 +34,7 @@ use std::sync::MutexGuard;
 use crc_any::CRC;
 use handlebars::{Handlebars, RenderError};
 use serde::Serialize;
-use serde_json::Value;
+use serde_json::{Value, Error as SerdeJsonError};
 
 use rocket::State;
 use rocket::request::Request;
@@ -76,7 +76,7 @@ pub struct HandlebarsResponse {
 impl HandlebarsResponse {
     #[inline]
     /// Build a `HandlebarsResponse` instance from a specific template.
-    pub fn build_from_template<S: Into<String>, V: Serialize>(client_etag: EtagIfNoneMatch, etag: Option<EntityTag>, minify: bool, name: S, context: V) -> Result<HandlebarsResponse, serde_json::Error> {
+    pub fn build_from_template<S: Into<String>, V: Serialize>(client_etag: EtagIfNoneMatch, etag: Option<EntityTag>, minify: bool, name: S, context: V) -> Result<HandlebarsResponse, SerdeJsonError> {
         let context = serde_json::to_value(context)?;
 
         let name = name.into();
