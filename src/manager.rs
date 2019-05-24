@@ -15,7 +15,6 @@ use crate::Handlebars;
 pub struct HandlebarsContextManager {
     pub handlebars: Mutex<ReloadableHandlebars>,
     pub cache_table: Mutex<HashMap<String, (String, EntityTag)>>,
-    pub files: Mutex<HashMap<String, String>>,
 }
 
 /// To monitor the state of Handlebars.
@@ -33,7 +32,6 @@ impl HandlebarsContextManager {
         HandlebarsContextManager {
             handlebars,
             cache_table: Mutex::new(HashMap::new()),
-            files: Mutex::new(HashMap::new()),
         }
     }
 
