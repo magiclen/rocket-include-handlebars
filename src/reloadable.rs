@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::SystemTime;
 
 use crate::Handlebars;
@@ -25,11 +25,11 @@ impl ReloadableHandlebars {
 
     #[inline]
     /// Register a template from a path and it can be reloaded automatically.
-    pub fn register_template_file<S: Into<String>, P: AsRef<Path>>(&mut self, name: S, file_path: P) -> Result<(), TemplateFileError> {
+    pub fn register_template_file<S: Into<String>, P: Into<PathBuf>>(&mut self, name: S, file_path: P) -> Result<(), TemplateFileError> {
         let name = name.into();
-        let file_path = file_path.as_ref();
+        let file_path = file_path.into();
 
-        self.handlebars.register_template_file(name.as_str(), file_path)?;
+        self.handlebars.register_template_file(name.as_str(), &file_path)?;
 
         let metadata = file_path.metadata().unwrap();
 
