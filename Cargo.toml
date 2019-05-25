@@ -1,6 +1,6 @@
 [package]
 name = "rocket-include-handlebars"
-version = "0.9.6"
+version = "0.10.0"
 authors = ["Magic Len <len@magiclen.org>"]
 repository = "https://github.com/magiclen/rocket-include-handlebars"
 homepage = "https://magiclen.org/rocket-include-handlebars"

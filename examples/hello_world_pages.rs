@@ -28,6 +28,16 @@ fn index() -> HandlebarsResponse {
     handlebars_response!("index", &map)
 }
 
+#[get("/disable-minify")]
+fn index_disable_minify() -> HandlebarsResponse {
+    let mut map = HashMap::new();
+
+    map.insert("title", "Title");
+    map.insert("body", "Hello, world!");
+
+    handlebars_response!(disable_minify "index", &map)
+}
+
 #[get("/etag")]
 fn index_etag(etag_if_none_match: EtagIfNoneMatch) -> HandlebarsResponse {
     let mut map = HashMap::new();
@@ -38,13 +48,23 @@ fn index_etag(etag_if_none_match: EtagIfNoneMatch) -> HandlebarsResponse {
     handlebars_response!(etag_if_none_match, "index", &map)
 }
 
+#[get("/etag/disable-minify")]
+fn index_etag_disable_minify(etag_if_none_match: EtagIfNoneMatch) -> HandlebarsResponse {
+    let mut map = HashMap::new();
+
+    map.insert("title", "Title");
+    map.insert("body", "Hello, world!");
+
+    handlebars_response!(etag_if_none_match, disable_minify "index", &map)
+}
+
 #[get("/2")]
 fn index_2(cm: State<HandlebarsContextManager>) -> HandlebarsResponse {
-    handlebars_response_static!(
+    handlebars_response_cache!(
         cm,
         "index2",
         {
-            println!("Generate index_2 and staticize it...");
+            println!("Generate index_2 and cache it...");
 
             let mut map = HashMap::new();
 
@@ -59,12 +79,12 @@ fn index_2(cm: State<HandlebarsContextManager>) -> HandlebarsResponse {
 
 #[get("/2/etag")]
 fn index_2_etag(etag_if_none_match: EtagIfNoneMatch, cm: State<HandlebarsContextManager>) -> HandlebarsResponse {
-    handlebars_response_static!(
+    handlebars_response_cache!(
         etag_if_none_match,
         cm,
         "index2etag",
         {
-            println!("Generate index_2_etag and staticize it...");
+            println!("Generate index_2_etag and cache it...");
 
             let mut map = HashMap::new();
 
@@ -90,7 +110,7 @@ fn main() {
 
             handlebars.register_helper("inc", Box::new(inc));
         }))
-        .mount("/", routes![index, index_etag])
+        .mount("/", routes![index, index_etag, index_disable_minify, index_etag_disable_minify])
         .mount("/", routes![index_2, index_2_etag])
         .launch();
 }
