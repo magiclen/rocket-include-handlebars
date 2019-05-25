@@ -30,7 +30,7 @@ impl ReloadableHandlebars {
 
         self.handlebars.register_template_file(name, &file_path)?;
 
-        let metadata = file_path.metadata().unwrap();
+        let metadata = file_path.metadata().map_err(|err| TemplateFileError::IOError(err, name.to_string()))?;
 
         let mtime = metadata.modified().ok();
 
