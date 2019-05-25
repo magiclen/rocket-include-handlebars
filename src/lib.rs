@@ -40,7 +40,7 @@ use serde_json::{Value, Error as SerdeJsonError};
 use rocket::State;
 use rocket::request::Request;
 use rocket::response::{self, Response, Responder};
-use rocket::http::{Status, hyper::header::ETag};
+use rocket::http::Status;
 use rocket::fairing::Fairing;
 
 pub use rocket_etag_if_none_match::{EntityTag, EtagIfNoneMatch};
@@ -65,7 +65,7 @@ enum HandlebarsResponseSource {
         name: &'static str,
         context: Value,
     },
-    Cache(Option<String>),
+    Cache(String),
 }
 
 #[derive(Debug)]
@@ -97,7 +97,7 @@ impl HandlebarsResponse {
     #[inline]
     /// Build a `HandlebarsResponse` instance from static cache.
     pub fn build_from_cache<S: Into<String>>(client_etag: EtagIfNoneMatch, name: S) -> HandlebarsResponse {
-        let source = HandlebarsResponseSource::Cache(Some(name.into()));
+        let source = HandlebarsResponseSource::Cache(name.into());
 
         HandlebarsResponse {
             client_etag,
@@ -176,7 +176,7 @@ impl HandlebarsResponse {
             HandlebarsResponseSource::Cache(name) => {
                 let cache_table = cm.cache_table.lock().unwrap();
 
-                match cache_table.get(name.as_ref().unwrap()) {
+                match cache_table.get(name) {
                     Some((html, etag)) => Ok((html.clone(), etag.clone())),
                     None => Err(RenderError::new("This Response hasn't triggered yet."))
                 }
@@ -203,7 +203,7 @@ impl HandlebarsResponse {
             HandlebarsResponseSource::Cache(name) => {
                 let cache_table = cm.cache_table.lock().unwrap();
 
-                match cache_table.get(name.as_ref().unwrap()) {
+                match cache_table.get(name) {
                     Some((html, etag)) => Ok((html.clone(), etag.clone())),
                     None => Err(RenderError::new("This Response hasn't triggered yet."))
                 }
@@ -213,36 +213,51 @@ impl HandlebarsResponse {
 }
 
 impl<'a> Responder<'a> for HandlebarsResponse {
-    fn respond_to(mut self, request: &Request) -> response::Result<'a> {
+    fn respond_to(self, request: &Request) -> response::Result<'a> {
         let mut response = Response::build();
 
         let cm = request.guard::<State<HandlebarsContextManager>>().expect("HandlebarsContextManager registered in on_attach");
 
-        let (is_template, etag, minify) = {
-            match &mut self.source {
-                HandlebarsResponseSource::Template {
-                    etag,
-                    minify,
-                    ..
-                } => {
-                    (true, etag.take(), *minify)
-                }
-                _ => (false, None, false)
-            }
-        };
+        match &self.source {
+            HandlebarsResponseSource::Template {
+                etag,
+                minify,
+                ..
+            } => {
+                let (html, etag) = match etag {
+                    Some(etag) => {
+                        let is_etag_match = self.client_etag.weak_eq(&etag);
 
-        if is_template {
-            let (html, etag) = match etag {
-                Some(etag) => {
-                    let is_etag_match = self.client_etag.weak_eq(&etag);
+                        if is_etag_match {
+                            response.status(Status::NotModified);
 
-                    if is_etag_match {
-                        response.status(Status::NotModified);
+                            return response.ok();
+                        } else {
+                            match self.render(&cm) {
+                                Ok(html) => (html, etag.to_string()),
+                                Err(_) => {
+                                    response.status(Status::InternalServerError);
 
-                        return response.ok();
-                    } else {
+                                    return response.ok();
+                                }
+                            }
+                        }
+                    }
+                    None => {
                         match self.render(&cm) {
-                            Ok(html) => (html, etag),
+                            Ok(html) => {
+                                let etag = compute_html_etag(&html);
+
+                                let is_etag_match = self.client_etag.weak_eq(&etag);
+
+                                if is_etag_match {
+                                    response.status(Status::NotModified);
+
+                                    return response.ok();
+                                } else {
+                                    (html, etag.to_string())
+                                }
+                            }
                             Err(_) => {
                                 response.status(Status::InternalServerError);
 
@@ -250,75 +265,46 @@ impl<'a> Responder<'a> for HandlebarsResponse {
                             }
                         }
                     }
-                }
-                None => {
-                    match self.render(&cm) {
-                        Ok(html) => {
-                            let etag = compute_html_etag(&html);
+                };
 
-                            let is_etag_match = self.client_etag.weak_eq(&etag);
+                let html = if *minify {
+                    html_minifier::minify(&html).unwrap()
+                } else {
+                    html
+                };
+
+                response
+                    .raw_header("ETag", etag)
+                    .raw_header("Content-Type", "text/html; charset=utf-8")
+                    .sized_body(Cursor::new(html));
+            }
+            HandlebarsResponseSource::Cache(key) => {
+                let (html, etag) = {
+                    let cache_table = cm.cache_table.lock().unwrap();
+
+                    match cache_table.get(key) {
+                        Some((html, etag)) => {
+                            let is_etag_match = self.client_etag.weak_eq(etag);
 
                             if is_etag_match {
                                 response.status(Status::NotModified);
 
                                 return response.ok();
                             } else {
-                                (html, etag)
+                                (html.clone(), etag.to_string())
                             }
                         }
-                        Err(_) => {
+                        None => {
                             response.status(Status::InternalServerError);
 
                             return response.ok();
                         }
                     }
-                }
-            };
+                };
 
-            let html = if minify {
-                html_minifier::minify(&html).unwrap()
-            } else {
-                html
-            };
-
-            response.header(ETag(etag));
-
-            response.raw_header("Content-Type", "text/html; charset=utf-8")
-                .sized_body(Cursor::new(html));
-        } else {
-            let name = if let HandlebarsResponseSource::Cache(name) = &mut self.source {
-                name.take().unwrap()
-            } else {
-                unreachable!()
-            };
-
-            let cache = {
-                let cache_table = cm.cache_table.lock().unwrap();
-
-                match cache_table.get(&name) {
-                    Some((html, etag)) => {
-                        let is_etag_match = self.client_etag.weak_eq(etag);
-
-                        if is_etag_match {
-                            response.status(Status::NotModified);
-
-                            None
-                        } else {
-                            Some((html.clone(), etag.clone()))
-                        }
-                    }
-                    None => {
-                        response.status(Status::InternalServerError);
-
-                        return response.ok();
-                    }
-                }
-            };
-
-            if let Some((html, etag)) = cache {
-                response.header(ETag(etag));
-
-                response.raw_header("Content-Type", "text/html; charset=utf-8")
+                response
+                    .raw_header("ETag", etag)
+                    .raw_header("Content-Type", "text/html; charset=utf-8")
                     .sized_body(Cursor::new(html));
             }
         }
