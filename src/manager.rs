@@ -58,11 +58,11 @@ impl HandlebarsContextManager {
     #[inline]
     /// Check if a cache key exists.
     pub fn contains_key<S: AsRef<str>>(&self, key: S) -> bool {
-        self.cache_table.lock().unwrap().contains_key(key.as_ref())
+        self.cache_table.lock().unwrap().get(key.as_ref()).is_some()
     }
 
     #[inline]
-    /// Check if a cache key exists.
+    /// Get the cache by a specific key.
     pub fn get<S: AsRef<str>>(&self, key: S) -> Option<(Arc<str>, Arc<EntityTag>)> {
         self.cache_table.lock().unwrap().get(key.as_ref()).map(|(html, etag)| (html.clone(), etag.clone()))
     }
