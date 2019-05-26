@@ -23,13 +23,13 @@ const FAIRING_NAME: &'static str = "Handlebars";
 /// The fairing of `HandlebarsResponse`.
 #[cfg(debug_assertions)]
 pub struct HandlebarsResponseFairing {
-    pub(crate) custom_callback: Box<Fn(&mut MutexGuard<ReloadableHandlebars>) + Send + Sync + 'static>
+    pub(crate) custom_callback: Box<Fn(&mut MutexGuard<ReloadableHandlebars>) -> usize + Send + Sync + 'static>,
 }
 
 /// The fairing of `HandlebarsResponse`.
 #[cfg(not(debug_assertions))]
 pub struct HandlebarsResponseFairing {
-    pub(crate) custom_callback: Box<Fn(&mut Handlebars) + Send + Sync + 'static>
+    pub(crate) custom_callback: Box<Fn(&mut Handlebars) -> usize + Send + Sync + 'static>,
 }
 
 impl Fairing for HandlebarsResponseFairing {
@@ -53,9 +53,9 @@ impl Fairing for HandlebarsResponseFairing {
     fn on_attach(&self, rocket: Rocket) -> Result<Rocket, Rocket> {
         let handlebars = Mutex::new(ReloadableHandlebars::new());
 
-        (self.custom_callback)(&mut handlebars.lock().unwrap());
+        let cache_capacity = (self.custom_callback)(&mut handlebars.lock().unwrap());
 
-        let state = HandlebarsContextManager::new(handlebars);
+        let state = HandlebarsContextManager::new(handlebars, cache_capacity);
 
         Ok(rocket.manage(state))
     }
@@ -64,9 +64,9 @@ impl Fairing for HandlebarsResponseFairing {
     fn on_attach(&self, rocket: Rocket) -> Result<Rocket, Rocket> {
         let mut handlebars = Handlebars::new();
 
-        (self.custom_callback)(&mut handlebars);
+        let cache_capacity = (self.custom_callback)(&mut handlebars);
 
-        let state = HandlebarsContextManager::new(handlebars);
+        let state = HandlebarsContextManager::new(handlebars, cache_capacity);
 
         Ok(rocket.manage(state))
     }

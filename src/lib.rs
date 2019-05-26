@@ -52,6 +52,8 @@ pub use reloadable::ReloadableHandlebars;
 pub use manager::HandlebarsContextManager;
 use fairing::HandlebarsResponseFairing;
 
+const DEFAULT_CACHE_CAPACITY: usize = 256;
+
 #[inline]
 fn compute_html_etag<S: AsRef<str>>(html: S) -> EntityTag {
     let mut crc64ecma = CRC::crc64ecma();
@@ -112,8 +114,14 @@ impl HandlebarsResponse {
     #[inline]
     /// Create the fairing of `HandlebarsResponse`.
     pub fn fairing<F>(f: F) -> impl Fairing where F: Fn(&mut MutexGuard<ReloadableHandlebars>) + Send + Sync + 'static {
+        let f = Box::new(f);
+
         HandlebarsResponseFairing {
-            custom_callback: Box::new(f)
+            custom_callback: Box::new(move |handlebars| {
+                f(handlebars);
+
+                DEFAULT_CACHE_CAPACITY
+            }),
         }
     }
 
@@ -121,8 +129,32 @@ impl HandlebarsResponse {
     #[inline]
     /// Create the fairing of `HandlebarsResponse`.
     pub fn fairing<F>(f: F) -> impl Fairing where F: Fn(&mut Handlebars) + Send + Sync + 'static {
+        let f = Box::new(f);
+
         HandlebarsResponseFairing {
-            custom_callback: Box::new(f)
+            custom_callback: Box::new(move |handlebars| {
+                f(handlebars);
+
+                DEFAULT_CACHE_CAPACITY
+            }),
+        }
+    }
+
+    #[cfg(debug_assertions)]
+    #[inline]
+    /// Create the fairing of `HandlebarsResponse` and set the cache capacity.
+    pub fn fairing_cache<F>(f: F) -> impl Fairing where F: Fn(&mut MutexGuard<ReloadableHandlebars>) -> usize + Send + Sync + 'static {
+        HandlebarsResponseFairing {
+            custom_callback: Box::new(f),
+        }
+    }
+
+    #[cfg(not(debug_assertions))]
+    #[inline]
+    /// Create the fairing of `HandlebarsResponse` and set the cache capacity.
+    pub fn fairing_cache<F>(f: F) -> impl Fairing where F: Fn(&mut Handlebars) -> usize + Send + Sync + 'static {
+        HandlebarsResponseFairing {
+            custom_callback: Box::new(f),
         }
     }
 }
@@ -174,13 +206,8 @@ impl HandlebarsResponse {
 
                 Ok((html.into(), Arc::new(etag)))
             }
-            HandlebarsResponseSource::Cache(name) => {
-                let cache_table = cm.cache_table.lock().unwrap();
-
-                match cache_table.get(name) {
-                    Some((html, etag)) => Ok((html.clone(), etag.clone())),
-                    None => Err(RenderError::new("This Response hasn't triggered yet."))
-                }
+            HandlebarsResponseSource::Cache(key) => {
+                cm.get(key).ok_or(RenderError::new("This Response hasn't triggered yet."))
             }
         }
     }
@@ -201,13 +228,8 @@ impl HandlebarsResponse {
 
                 Ok((html.into(), Arc::new(etag)))
             }
-            HandlebarsResponseSource::Cache(name) => {
-                let cache_table = cm.cache_table.lock().unwrap();
-
-                match cache_table.get(name) {
-                    Some((html, etag)) => Ok((html.clone(), etag.clone())),
-                    None => Err(RenderError::new("This Response hasn't triggered yet."))
-                }
+            HandlebarsResponseSource::Cache(key) => {
+                cm.get(key).ok_or(RenderError::new("This Response hasn't triggered yet."))
             }
         }
     }
@@ -258,18 +280,16 @@ impl<'a> Responder<'a> for HandlebarsResponse {
             }
             HandlebarsResponseSource::Cache(key) => {
                 let (html, etag) = {
-                    let cache_table = cm.cache_table.lock().unwrap();
-
-                    match cache_table.get(key) {
+                    match cm.get(key) {
                         Some((html, etag)) => {
-                            let is_etag_match = self.client_etag.weak_eq(etag);
+                            let is_etag_match = self.client_etag.weak_eq(&etag);
 
                             if is_etag_match {
                                 response.status(Status::NotModified);
 
                                 return response.ok();
                             } else {
-                                (html.clone(), etag.to_string())
+                                (html, etag.to_string())
                             }
                         }
                         None => {
