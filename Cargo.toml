@@ -17,6 +17,7 @@ travis-ci = { repository = "magiclen/rocket-include-handlebars", branch = "maste
 rocket = "0.4"
 crc-any = "1.1"
 html-minifier = "1.1"
+rc-u8-reader = "2.0.1"
 handlebars = "1.1"
 serde = "1"
 serde_json = "1"

@@ -19,6 +19,7 @@ pub extern crate handlebars;
 
 extern crate crc_any;
 extern crate html_minifier;
+extern crate rc_u8_reader;
 
 extern crate serde;
 
@@ -31,8 +32,10 @@ extern crate rocket_etag_if_none_match;
 use std::io::Cursor;
 #[cfg(debug_assertions)]
 use std::sync::MutexGuard;
+use std::sync::Arc;
 
 use crc_any::CRC;
+use rc_u8_reader::ArcU8Reader;
 use handlebars::{Handlebars, RenderError};
 use serde::Serialize;
 use serde_json::{Value, Error as SerdeJsonError};
@@ -64,7 +67,7 @@ enum HandlebarsResponseSource {
         name: &'static str,
         context: Value,
     },
-    Cache(String),
+    Cache(Arc<str>),
 }
 
 #[derive(Debug)]
@@ -94,7 +97,7 @@ impl HandlebarsResponse {
 
     #[inline]
     /// Build a `HandlebarsResponse` instance from cache.
-    pub fn build_from_cache<S: Into<String>>(client_etag: EtagIfNoneMatch, name: S) -> HandlebarsResponse {
+    pub fn build_from_cache<S: Into<Arc<str>>>(client_etag: EtagIfNoneMatch, name: S) -> HandlebarsResponse {
         let source = HandlebarsResponseSource::Cache(name.into());
 
         HandlebarsResponse {
@@ -158,7 +161,7 @@ impl HandlebarsResponse {
     #[cfg(debug_assertions)]
     #[inline]
     /// Get this response's HTML and Etag.
-    pub fn get_html_and_etag(&self, cm: &HandlebarsContextManager) -> Result<(String, EntityTag), RenderError> {
+    pub fn get_html_and_etag(&self, cm: &HandlebarsContextManager) -> Result<(Arc<str>, Arc<EntityTag>), RenderError> {
         match &self.source {
             HandlebarsResponseSource::Template {
                 name,
@@ -169,7 +172,7 @@ impl HandlebarsResponse {
 
                 let etag = compute_html_etag(&html);
 
-                Ok((html, etag))
+                Ok((html.into(), Arc::new(etag)))
             }
             HandlebarsResponseSource::Cache(name) => {
                 let cache_table = cm.cache_table.lock().unwrap();
@@ -185,7 +188,7 @@ impl HandlebarsResponse {
     #[cfg(not(debug_assertions))]
     #[inline]
     /// Get this response's HTML and Etag.
-    pub fn get_html_and_etag(&self, cm: &HandlebarsContextManager) -> Result<(String, EntityTag), RenderError> {
+    pub fn get_html_and_etag(&self, cm: &HandlebarsContextManager) -> Result<(Arc<str>, Arc<EntityTag>), RenderError> {
         match &self.source {
             HandlebarsResponseSource::Template {
                 name,
@@ -196,7 +199,7 @@ impl HandlebarsResponse {
 
                 let etag = compute_html_etag(&html);
 
-                Ok((html, etag))
+                Ok((html.into(), Arc::new(etag)))
             }
             HandlebarsResponseSource::Cache(name) => {
                 let cache_table = cm.cache_table.lock().unwrap();
@@ -280,7 +283,7 @@ impl<'a> Responder<'a> for HandlebarsResponse {
                 response
                     .raw_header("ETag", etag)
                     .raw_header("Content-Type", "text/html; charset=utf-8")
-                    .sized_body(Cursor::new(html));
+                    .sized_body(ArcU8Reader::new(html));
             }
         }
 
