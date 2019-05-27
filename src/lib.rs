@@ -10,6 +10,8 @@ This is a crate which provides macros `handlebars_resources_initialize!` and `ha
 See `examples`.
 */
 
+#[macro_use]
+mod helpers;
 mod reloadable;
 mod manager;
 mod fairing;

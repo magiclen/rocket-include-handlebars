@@ -64,6 +64,8 @@ impl Fairing for HandlebarsResponseFairing {
     fn on_attach(&self, rocket: Rocket) -> Result<Rocket, Rocket> {
         let mut handlebars = Handlebars::new();
 
+        handlebars_helpers!(handlebars);
+
         let cache_capacity = (self.custom_callback)(&mut handlebars);
 
         let state = HandlebarsContextManager::new(handlebars, cache_capacity);
