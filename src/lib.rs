@@ -236,6 +236,46 @@ impl HandlebarsResponse {
             }
         }
     }
+
+    #[cfg(debug_assertions)]
+    #[inline]
+    /// Get this response's HTML.
+    pub fn get_html(&self, cm: &HandlebarsContextManager) -> Result<String, RenderError> {
+        match &self.source {
+            HandlebarsResponseSource::Template {
+                name,
+                context,
+                ..
+            } => {
+                let html = cm.handlebars.lock().unwrap().render(name, context)?;
+
+                Ok(html)
+            }
+            HandlebarsResponseSource::Cache(key) => {
+                cm.get(key).map(|(html, _)| html.to_string()).ok_or(RenderError::new("This Response hasn't triggered yet."))
+            }
+        }
+    }
+
+    #[cfg(not(debug_assertions))]
+    #[inline]
+    /// Get this response's HTML.
+    pub fn get_html(&self, cm: &HandlebarsContextManager) -> Result<String, RenderError> {
+        match &self.source {
+            HandlebarsResponseSource::Template {
+                name,
+                context,
+                ..
+            } => {
+                let html = cm.handlebars.render(name, context)?;
+
+                Ok(html)
+            }
+            HandlebarsResponseSource::Cache(key) => {
+                cm.get(key).map(|(html, _)| html.to_string()).ok_or(RenderError::new("This Response hasn't triggered yet."))
+            }
+        }
+    }
 }
 
 impl<'a> Responder<'a> for HandlebarsResponse {
