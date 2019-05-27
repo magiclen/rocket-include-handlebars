@@ -20,7 +20,6 @@ mod macros;
 pub extern crate handlebars;
 
 #[cfg(not(feature = "helper"))]
-#[macro_use]
 pub extern crate handlebars;
 
 #[macro_use]
