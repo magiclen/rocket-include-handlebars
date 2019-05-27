@@ -1,6 +1,6 @@
 [package]
 name = "rocket-include-handlebars"
-version = "0.11.3"
+version = "0.11.4"
 authors = ["Magic Len <len@magiclen.org>"]
 repository = "https://github.com/magiclen/rocket-include-handlebars"
 homepage = "https://magiclen.org/rocket-include-handlebars"
@@ -28,3 +28,10 @@ rocket-etag-if-none-match = "0.3"
 
 [dev-dependencies]
 json-gettext = "2.2"
+
+[features]
+helper = []
+helper_inc = ["helper"]
+helper_dec = ["helper"]
+helper_eq_str = ["helper"]
+helper_ne_str = ["helper"]
