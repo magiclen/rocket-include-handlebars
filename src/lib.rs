@@ -210,7 +210,7 @@ impl HandlebarsResponse {
                 Ok((html.into(), Arc::new(etag)))
             }
             HandlebarsResponseSource::Cache(key) => {
-                cm.get(key).ok_or(RenderError::new("This Response hasn't triggered yet."))
+                cm.get(key).ok_or(RenderError::new("This response hasn't been triggered yet."))
             }
         }
     }
@@ -232,7 +232,7 @@ impl HandlebarsResponse {
                 Ok((html.into(), Arc::new(etag)))
             }
             HandlebarsResponseSource::Cache(key) => {
-                cm.get(key).ok_or(RenderError::new("This Response hasn't triggered yet."))
+                cm.get(key).ok_or(RenderError::new("This response hasn't been triggered yet."))
             }
         }
     }
@@ -252,7 +252,7 @@ impl HandlebarsResponse {
                 Ok(html)
             }
             HandlebarsResponseSource::Cache(key) => {
-                cm.get(key).map(|(html, _)| html.to_string()).ok_or(RenderError::new("This Response hasn't triggered yet."))
+                cm.get(key).map(|(html, _)| html.to_string()).ok_or(RenderError::new("This response hasn't been triggered yet."))
             }
         }
     }
@@ -272,7 +272,7 @@ impl HandlebarsResponse {
                 Ok(html)
             }
             HandlebarsResponseSource::Cache(key) => {
-                cm.get(key).map(|(html, _)| html.to_string()).ok_or(RenderError::new("This Response hasn't triggered yet."))
+                cm.get(key).map(|(html, _)| html.to_string()).ok_or(RenderError::new("This response hasn't been triggered yet."))
             }
         }
     }
