@@ -4,9 +4,18 @@
 macro_rules! handlebars_resources_initialize {
     ( $handlebars:expr, $($name:expr, $path:expr), * $(,)* ) => {
         use std::fs;
+        use std::collections::HashSet;
+
+        let mut set: HashSet<&'static str> = HashSet::new();
 
         $(
-            $handlebars.register_template_file($name, $path).unwrap();
+            if set.contains($name) {
+                panic!("The name `{}` is duplicated.", $name);
+            } else {
+                $handlebars.register_template_file($name, $path).unwrap();
+
+                set.insert($name);
+            }
         )*
     };
 }
@@ -17,9 +26,18 @@ macro_rules! handlebars_resources_initialize {
 macro_rules! handlebars_resources_initialize {
     ( $handlebars:expr, $($name:expr, $path:expr), * $(,)* ) => {
         use std::fs;
+        use std::collections::HashSet;
+
+        let mut set: HashSet<&str> = HashSet::new();
 
         $(
-            $handlebars.register_template_string($name, include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/", $path))).unwrap();
+            if set.contains($name) {
+                panic!("The name `{}` is duplicated.", $name);
+            } else {
+                $handlebars.register_template_string($name, include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/", $path))).unwrap();
+
+                set.insert($name);
+            }
         )*
     };
 }
