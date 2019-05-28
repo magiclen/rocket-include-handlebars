@@ -311,9 +311,7 @@ impl<'a> Responder<'a> for HandlebarsResponse {
                         }
                     }
                     Err(_) => {
-                        response.status(Status::InternalServerError);
-
-                        return response.ok();
+                        return Err(Status::InternalServerError);
                     }
                 };
 
@@ -343,9 +341,7 @@ impl<'a> Responder<'a> for HandlebarsResponse {
                             }
                         }
                         None => {
-                            response.status(Status::InternalServerError);
-
-                            return response.ok();
+                            return Err(Status::InternalServerError);
                         }
                     }
                 };
