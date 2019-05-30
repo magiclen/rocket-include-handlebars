@@ -43,11 +43,11 @@ impl ReloadableHandlebars {
     pub fn register_template_file<P: Into<PathBuf>>(&mut self, name: &'static str, file_path: P) -> Result<(), TemplateFileError> {
         let file_path = file_path.into();
 
-        self.handlebars.register_template_file(name, &file_path)?;
-
         let metadata = file_path.metadata().map_err(|err| TemplateFileError::IOError(err, name.to_string()))?;
 
         let mtime = metadata.modified().ok();
+
+        self.handlebars.register_template_file(name, &file_path)?;
 
         self.files.insert(name, (file_path, mtime));
 
