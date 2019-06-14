@@ -23,13 +23,13 @@ const FAIRING_NAME: &'static str = "Handlebars";
 /// The fairing of `HandlebarsResponse`.
 #[cfg(debug_assertions)]
 pub struct HandlebarsResponseFairing {
-    pub(crate) custom_callback: Box<Fn(&mut MutexGuard<ReloadableHandlebars>) -> usize + Send + Sync + 'static>,
+    pub(crate) custom_callback: Box<dyn Fn(&mut MutexGuard<ReloadableHandlebars>) -> usize + Send + Sync + 'static>,
 }
 
 /// The fairing of `HandlebarsResponse`.
 #[cfg(not(debug_assertions))]
 pub struct HandlebarsResponseFairing {
-    pub(crate) custom_callback: Box<Fn(&mut Handlebars) -> usize + Send + Sync + 'static>,
+    pub(crate) custom_callback: Box<dyn Fn(&mut Handlebars) -> usize + Send + Sync + 'static>,
 }
 
 impl Fairing for HandlebarsResponseFairing {

@@ -56,7 +56,7 @@ use rocket::response::{self, Response, Responder};
 use rocket::http::Status;
 use rocket::fairing::Fairing;
 
-pub use rocket_etag_if_none_match::{EntityTag, EtagIfNoneMatch};
+use rocket_etag_if_none_match::{EntityTag, EtagIfNoneMatch};
 
 pub use reloadable::ReloadableHandlebars;
 pub use manager::HandlebarsContextManager;
@@ -85,14 +85,13 @@ enum HandlebarsResponseSource {
 #[derive(Debug)]
 /// To respond HTML from Handlebars templates.
 pub struct HandlebarsResponse {
-    client_etag: EtagIfNoneMatch,
     source: HandlebarsResponseSource,
 }
 
 impl HandlebarsResponse {
     #[inline]
     /// Build a `HandlebarsResponse` instance from a specific template.
-    pub fn build_from_template<V: Serialize>(client_etag: EtagIfNoneMatch, minify: bool, name: &'static str, context: V) -> Result<HandlebarsResponse, SerdeJsonError> {
+    pub fn build_from_template<V: Serialize>(minify: bool, name: &'static str, context: V) -> Result<HandlebarsResponse, SerdeJsonError> {
         let context = serde_json::to_value(context)?;
 
         let source = HandlebarsResponseSource::Template {
@@ -102,18 +101,16 @@ impl HandlebarsResponse {
         };
 
         Ok(HandlebarsResponse {
-            client_etag,
             source,
         })
     }
 
     #[inline]
     /// Build a `HandlebarsResponse` instance from cache.
-    pub fn build_from_cache<S: Into<Arc<str>>>(client_etag: EtagIfNoneMatch, name: S) -> HandlebarsResponse {
+    pub fn build_from_cache<S: Into<Arc<str>>>(name: S) -> HandlebarsResponse {
         let source = HandlebarsResponseSource::Cache(name.into());
 
         HandlebarsResponse {
-            client_etag,
             source,
         }
     }
@@ -287,6 +284,8 @@ impl HandlebarsResponse {
 
 impl<'a> Responder<'a> for HandlebarsResponse {
     fn respond_to(self, request: &Request) -> response::Result<'a> {
+        let client_etag = request.guard::<EtagIfNoneMatch>().unwrap();
+
         let mut response = Response::build();
 
         let cm = request.guard::<State<HandlebarsContextManager>>().expect("HandlebarsContextManager registered in on_attach");
@@ -300,7 +299,7 @@ impl<'a> Responder<'a> for HandlebarsResponse {
                     Ok(html) => {
                         let etag = compute_html_etag(&html);
 
-                        let is_etag_match = self.client_etag.weak_eq(&etag);
+                        let is_etag_match = client_etag.weak_eq(&etag);
 
                         if is_etag_match {
                             response.status(Status::NotModified);
@@ -330,7 +329,7 @@ impl<'a> Responder<'a> for HandlebarsResponse {
                 let (html, etag) = {
                     match cm.get(key) {
                         Some((html, etag)) => {
-                            let is_etag_match = self.client_etag.weak_eq(&etag);
+                            let is_etag_match = client_etag.weak_eq(&etag);
 
                             if is_etag_match {
                                 response.status(Status::NotModified);
