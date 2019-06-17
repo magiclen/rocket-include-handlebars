@@ -46,6 +46,9 @@ macro_rules! handlebars_resources_initialize {
 #[macro_export]
 macro_rules! handlebars_response {
     ( $name:expr, $data:expr ) => {
+        handlebars_response!(enable_minify $name, $data)
+    };
+    ( enable_minify $name:expr, $data:expr ) => {
         {
             use ::rocket_include_handlebars::HandlebarsResponse;
 
@@ -65,6 +68,13 @@ macro_rules! handlebars_response {
                 $name,
                 $data,
             ).unwrap()
+        }
+    };
+    ( auto_minify $name:expr, $data:expr ) => {
+        if cfg!(debug_assertions) {
+            handlebars_response!(disable_minify $name, $data)
+        } else {
+            handlebars_response!(enable_minify $name, $data)
         }
     };
 }
