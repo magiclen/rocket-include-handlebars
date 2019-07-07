@@ -1,6 +1,6 @@
 [package]
 name = "rocket-include-handlebars"
-version = "0.12.1"
+version = "0.12.2"
 authors = ["Magic Len <len@magiclen.org>"]
 repository = "https://github.com/magiclen/rocket-include-handlebars"
 homepage = "https://magiclen.org/rocket-include-handlebars"
@@ -15,12 +15,12 @@ travis-ci = { repository = "magiclen/rocket-include-handlebars", branch = "maste
 
 [dependencies]
 derivative = "1"
-rocket = "0.4"
-crc-any = "1.1"
+rocket = "0.4.2"
+crc-any = "2"
 html-minifier = "1.1"
 rc-u8-reader = "2.0.1"
 lru_time_cache = "0.9"
-handlebars = "1.1"
+handlebars = "2"
 serde = "1"
 serde_json = "1"
 
