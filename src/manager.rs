@@ -12,21 +12,21 @@ use crate::lru_time_cache::LruCache;
 
 /// To monitor the state of Handlebars.
 #[cfg(debug_assertions)]
-#[derive(Derivative)]
-#[derivative(Debug)]
+#[derive(Educe)]
+#[educe(Debug)]
 pub struct HandlebarsContextManager {
     pub handlebars: Mutex<ReloadableHandlebars>,
-    #[derivative(Debug = "ignore")]
+    #[educe(Debug(ignore))]
     cache_table: Mutex<LruCache<Arc<str>, (Arc<str>, Arc<EntityTag>)>>,
 }
 
 /// To monitor the state of Handlebars.
 #[cfg(not(debug_assertions))]
-#[derive(Derivative)]
-#[derivative(Debug)]
+#[derive(Educe)]
+#[educe(Debug)]
 pub struct HandlebarsContextManager {
     pub handlebars: Handlebars,
-    #[derivative(Debug = "ignore")]
+    #[educe(Debug(ignore))]
     cache_table: Mutex<LruCache<Arc<str>, (Arc<str>, Arc<EntityTag>)>>,
 }
 
