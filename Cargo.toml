@@ -10,8 +10,9 @@ description= "This is a crate which provides macros `handlebars_resources_initia
 readme = "README.md"
 license = "MIT"
 
-[badges]
-travis-ci = { repository = "magiclen/rocket-include-handlebars", branch = "master" }
+[badges.travis-ci]
+repository = "magiclen/rocket-include-handlebars"
+branch = "master"
 
 [dependencies]
 educe = ">=0.0.1"
