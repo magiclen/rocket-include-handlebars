@@ -1,14 +1,14 @@
 #[cfg(debug_assertions)]
 use std::sync::{Mutex, MutexGuard};
 
+#[cfg(debug_assertions)]
+use crate::rocket::data::Data;
+use crate::rocket::fairing::{Fairing, Info, Kind};
+#[cfg(debug_assertions)]
+use crate::rocket::request::Request;
 use crate::rocket::Rocket;
 #[cfg(debug_assertions)]
 use crate::rocket::State;
-#[cfg(debug_assertions)]
-use crate::rocket::request::Request;
-use crate::rocket::fairing::{Fairing, Info, Kind};
-#[cfg(debug_assertions)]
-use crate::rocket::data::Data;
 
 #[cfg(debug_assertions)]
 use crate::ReloadableHandlebars;
@@ -18,12 +18,13 @@ use crate::Handlebars;
 
 use crate::HandlebarsContextManager;
 
-const FAIRING_NAME: &'static str = "Handlebars";
+const FAIRING_NAME: &str = "Handlebars";
 
 /// The fairing of `HandlebarsResponse`.
 #[cfg(debug_assertions)]
 pub struct HandlebarsResponseFairing {
-    pub(crate) custom_callback: Box<dyn Fn(&mut MutexGuard<ReloadableHandlebars>) -> usize + Send + Sync + 'static>,
+    pub(crate) custom_callback:
+        Box<dyn Fn(&mut MutexGuard<ReloadableHandlebars>) -> usize + Send + Sync + 'static>,
 }
 
 /// The fairing of `HandlebarsResponse`.
@@ -75,7 +76,9 @@ impl Fairing for HandlebarsResponseFairing {
 
     #[cfg(debug_assertions)]
     fn on_request(&self, req: &mut Request, _data: &Data) {
-        let cm = req.guard::<State<HandlebarsContextManager>>().expect("HandlebarsContextManager registered in on_attach");
+        let cm = req
+            .guard::<State<HandlebarsContextManager>>()
+            .expect("HandlebarsContextManager registered in on_attach");
 
         cm.handlebars.lock().unwrap().reload_if_needed().unwrap();
     }

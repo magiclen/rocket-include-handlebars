@@ -3,8 +3,8 @@ use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use crate::Handlebars;
 use crate::handlebars::TemplateFileError;
+use crate::Handlebars;
 
 #[derive(Debug)]
 /// Reloadable Handlebars.
@@ -40,10 +40,16 @@ impl ReloadableHandlebars {
 
     #[inline]
     /// Register a template from a path and it can be reloaded automatically.
-    pub fn register_template_file<P: Into<PathBuf>>(&mut self, name: &'static str, file_path: P) -> Result<(), TemplateFileError> {
+    pub fn register_template_file<P: Into<PathBuf>>(
+        &mut self,
+        name: &'static str,
+        file_path: P,
+    ) -> Result<(), TemplateFileError> {
         let file_path = file_path.into();
 
-        let metadata = file_path.metadata().map_err(|err| TemplateFileError::IOError(err, name.to_string()))?;
+        let metadata = file_path
+            .metadata()
+            .map_err(|err| TemplateFileError::IOError(err, name.to_string()))?;
 
         let mtime = metadata.modified().ok();
 
@@ -65,9 +71,7 @@ impl ReloadableHandlebars {
 
                 Some(file_path)
             }
-            None => {
-                None
-            }
+            None => None,
         }
     }
 
@@ -75,27 +79,21 @@ impl ReloadableHandlebars {
     /// Reload templates if needed.
     pub fn reload_if_needed(&mut self) -> Result<(), TemplateFileError> {
         for (name, (file_path, mtime)) in &mut self.files {
-            let metadata = file_path.metadata().map_err(|err| TemplateFileError::IOError(err, name.to_string()))?;
+            let metadata = file_path
+                .metadata()
+                .map_err(|err| TemplateFileError::IOError(err, name.to_string()))?;
 
             let (reload, new_mtime) = match mtime {
                 Some(mtime) => {
                     match metadata.modified() {
-                        Ok(new_mtime) => {
-                            (new_mtime > *mtime, Some(new_mtime))
-                        }
-                        Err(_) => {
-                            (true, None)
-                        }
+                        Ok(new_mtime) => (new_mtime > *mtime, Some(new_mtime)),
+                        Err(_) => (true, None),
                     }
                 }
                 None => {
                     match metadata.modified() {
-                        Ok(new_mtime) => {
-                            (true, Some(new_mtime))
-                        }
-                        Err(_) => {
-                            (true, None)
-                        }
+                        Ok(new_mtime) => (true, Some(new_mtime)),
+                        Err(_) => (true, None),
                     }
                 }
             };
@@ -108,6 +106,13 @@ impl ReloadableHandlebars {
         }
 
         Ok(())
+    }
+}
+
+impl Default for ReloadableHandlebars {
+    #[inline]
+    fn default() -> Self {
+        ReloadableHandlebars::new()
     }
 }
 

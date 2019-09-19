@@ -83,36 +83,30 @@ macro_rules! handlebars_response {
 #[macro_export]
 #[cfg(debug_assertions)]
 macro_rules! handlebars_response_cache {
-    ( $cm:expr, $key:expr, $gen:block ) => {
-        {
-            drop(&$cm);
-            drop(&$key);
-            $gen
-        }
-    };
+    ($cm:expr, $key:expr, $gen:block) => {{
+        drop(&$cm);
+        drop(&$key);
+        $gen
+    }};
 }
 
 /// Used for wrapping a `HandlebarsResponse` and its constructor, and use a **key** to cache its HTML and ETag in memory. The cache is generated only when you are using the **release** profile.
 #[macro_export]
 #[cfg(not(debug_assertions))]
 macro_rules! handlebars_response_cache {
-    ( $cm:expr, $key:expr, $gen:block ) => {
-        {
-            let contains = $cm.contains_key($key);
+    ($cm:expr, $key:expr, $gen:block) => {{
+        let contains = $cm.contains_key($key);
 
-            if contains {
-                HandlebarsResponse::build_from_cache(
-                    $key
-                )
-            } else {
-                let res = $gen;
+        if contains {
+            HandlebarsResponse::build_from_cache($key)
+        } else {
+            let res = $gen;
 
-                let cache = res.get_html_and_etag(&$cm).unwrap();
+            let cache = res.get_html_and_etag(&$cm).unwrap();
 
-                $cm.insert($key, cache);
+            $cm.insert($key, cache);
 
-                res
-            }
+            res
         }
-    };
+    }};
 }

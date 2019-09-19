@@ -29,7 +29,5 @@ macro_rules! handlebars_helpers {
 
 #[cfg(all(not(debug_assertions), not(feature = "helper")))]
 macro_rules! handlebars_helpers {
-    ( $handlebars:expr ) => {
-
-    };
+    ($handlebars:expr) => {};
 }

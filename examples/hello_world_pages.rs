@@ -14,7 +14,7 @@ extern crate json_gettext;
 use std::collections::HashMap;
 
 use rocket::State;
-use rocket_include_handlebars::{HandlebarsResponse, HandlebarsContextManager};
+use rocket_include_handlebars::{HandlebarsContextManager, HandlebarsResponse};
 
 use json_gettext::JSONGetTextValue;
 
@@ -40,21 +40,17 @@ fn index_disable_minify() -> HandlebarsResponse {
 
 #[get("/2")]
 fn index_2(cm: State<HandlebarsContextManager>) -> HandlebarsResponse {
-    handlebars_response_cache!(
-        cm,
-        "index-2",
-        {
-            println!("Generate index-2 and cache it...");
+    handlebars_response_cache!(cm, "index-2", {
+        println!("Generate index-2 and cache it...");
 
-            let mut map = HashMap::new();
+        let mut map = HashMap::new();
 
-            map.insert("title", JSONGetTextValue::from_str("Title"));
-            map.insert("placeholder", JSONGetTextValue::from_str("Hello, \"world!\""));
-            map.insert("id", JSONGetTextValue::from_u64(0));
+        map.insert("title", JSONGetTextValue::from_str("Title"));
+        map.insert("placeholder", JSONGetTextValue::from_str("Hello, \"world!\""));
+        map.insert("id", JSONGetTextValue::from_u64(0));
 
-            handlebars_response!(auto_minify "index2", &map)
-        }
-    )
+        handlebars_response!(auto_minify "index2", &map)
+    })
 }
 
 fn main() {
@@ -62,8 +58,10 @@ fn main() {
         .attach(HandlebarsResponse::fairing(|handlebars| {
             handlebars_resources_initialize!(
                 handlebars,
-                "index", "examples/views/index.hbs",
-                "index2", "examples/views/index2.hbs"
+                "index",
+                "examples/views/index.hbs",
+                "index2",
+                "examples/views/index2.hbs"
             );
 
             handlebars_helper!(inc: |x: i64| x + 1);

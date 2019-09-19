@@ -12,10 +12,10 @@ See `examples`.
 
 #[macro_use]
 mod helpers;
-mod reloadable;
-mod manager;
 mod fairing;
 mod macros;
+mod manager;
+mod reloadable;
 
 #[cfg(feature = "helper")]
 #[macro_use]
@@ -28,8 +28,8 @@ pub extern crate handlebars;
 extern crate educe;
 extern crate crc_any;
 extern crate html_minifier;
-extern crate rc_u8_reader;
 extern crate lru_time_cache;
+extern crate rc_u8_reader;
 
 extern crate serde;
 
@@ -40,27 +40,27 @@ extern crate rocket;
 extern crate rocket_etag_if_none_match;
 
 use std::io::Cursor;
+use std::sync::Arc;
 #[cfg(debug_assertions)]
 use std::sync::MutexGuard;
-use std::sync::Arc;
 
 use crc_any::CRCu64;
-use rc_u8_reader::ArcU8Reader;
 use handlebars::{Handlebars, RenderError};
+use rc_u8_reader::ArcU8Reader;
 use serde::Serialize;
-use serde_json::{Value, Error as SerdeJsonError};
+use serde_json::{Error as SerdeJsonError, Value};
 
-use rocket::State;
-use rocket::request::Request;
-use rocket::response::{self, Response, Responder};
-use rocket::http::Status;
 use rocket::fairing::Fairing;
+use rocket::http::Status;
+use rocket::request::Request;
+use rocket::response::{self, Responder, Response};
+use rocket::State;
 
 use rocket_etag_if_none_match::{EntityTag, EtagIfNoneMatch};
 
-pub use reloadable::ReloadableHandlebars;
-pub use manager::HandlebarsContextManager;
 use fairing::HandlebarsResponseFairing;
+pub use manager::HandlebarsContextManager;
+pub use reloadable::ReloadableHandlebars;
 
 const DEFAULT_CACHE_CAPACITY: usize = 64;
 
@@ -91,7 +91,11 @@ pub struct HandlebarsResponse {
 impl HandlebarsResponse {
     #[inline]
     /// Build a `HandlebarsResponse` instance from a specific template.
-    pub fn build_from_template<V: Serialize>(minify: bool, name: &'static str, context: V) -> Result<HandlebarsResponse, SerdeJsonError> {
+    pub fn build_from_template<V: Serialize>(
+        minify: bool,
+        name: &'static str,
+        context: V,
+    ) -> Result<HandlebarsResponse, SerdeJsonError> {
         let context = serde_json::to_value(context)?;
 
         let source = HandlebarsResponseSource::Template {
@@ -120,7 +124,9 @@ impl HandlebarsResponse {
     #[cfg(debug_assertions)]
     #[inline]
     /// Create the fairing of `HandlebarsResponse`.
-    pub fn fairing<F>(f: F) -> impl Fairing where F: Fn(&mut MutexGuard<ReloadableHandlebars>) + Send + Sync + 'static {
+    pub fn fairing<F>(f: F) -> impl Fairing
+    where
+        F: Fn(&mut MutexGuard<ReloadableHandlebars>) + Send + Sync + 'static, {
         let f = Box::new(f);
 
         HandlebarsResponseFairing {
@@ -135,7 +141,9 @@ impl HandlebarsResponse {
     #[cfg(not(debug_assertions))]
     #[inline]
     /// Create the fairing of `HandlebarsResponse`.
-    pub fn fairing<F>(f: F) -> impl Fairing where F: Fn(&mut Handlebars) + Send + Sync + 'static {
+    pub fn fairing<F>(f: F) -> impl Fairing
+    where
+        F: Fn(&mut Handlebars) + Send + Sync + 'static, {
         let f = Box::new(f);
 
         HandlebarsResponseFairing {
@@ -150,7 +158,9 @@ impl HandlebarsResponse {
     #[cfg(debug_assertions)]
     #[inline]
     /// Create the fairing of `HandlebarsResponse` and set the cache capacity.
-    pub fn fairing_cache<F>(f: F) -> impl Fairing where F: Fn(&mut MutexGuard<ReloadableHandlebars>) -> usize + Send + Sync + 'static {
+    pub fn fairing_cache<F>(f: F) -> impl Fairing
+    where
+        F: Fn(&mut MutexGuard<ReloadableHandlebars>) -> usize + Send + Sync + 'static, {
         HandlebarsResponseFairing {
             custom_callback: Box::new(f),
         }
@@ -159,7 +169,9 @@ impl HandlebarsResponse {
     #[cfg(not(debug_assertions))]
     #[inline]
     /// Create the fairing of `HandlebarsResponse` and set the cache capacity.
-    pub fn fairing_cache<F>(f: F) -> impl Fairing where F: Fn(&mut Handlebars) -> usize + Send + Sync + 'static {
+    pub fn fairing_cache<F>(f: F) -> impl Fairing
+    where
+        F: Fn(&mut Handlebars) -> usize + Send + Sync + 'static, {
         HandlebarsResponseFairing {
             custom_callback: Box::new(f),
         }
@@ -175,10 +187,8 @@ impl HandlebarsResponse {
                 name,
                 context,
                 ..
-            } => {
-                cm.handlebars.lock().unwrap().render(name, context)
-            }
-            _ => unreachable!()
+            } => cm.handlebars.lock().unwrap().render(name, context),
+            _ => unreachable!(),
         }
     }
 
@@ -190,17 +200,18 @@ impl HandlebarsResponse {
                 name,
                 context,
                 ..
-            } => {
-                cm.handlebars.render(name, context)
-            }
-            _ => unreachable!()
+            } => cm.handlebars.render(name, context),
+            _ => unreachable!(),
         }
     }
 
     #[cfg(debug_assertions)]
     #[inline]
     /// Get this response's HTML and Etag.
-    pub fn get_html_and_etag(&self, cm: &HandlebarsContextManager) -> Result<(Arc<str>, Arc<EntityTag>), RenderError> {
+    pub fn get_html_and_etag(
+        &self,
+        cm: &HandlebarsContextManager,
+    ) -> Result<(Arc<str>, Arc<EntityTag>), RenderError> {
         match &self.source {
             HandlebarsResponseSource::Template {
                 name,
@@ -214,7 +225,8 @@ impl HandlebarsResponse {
                 Ok((html.into(), Arc::new(etag)))
             }
             HandlebarsResponseSource::Cache(key) => {
-                cm.get(key).ok_or(RenderError::new("This response hasn't been triggered yet."))
+                cm.get(key)
+                    .ok_or_else(|| RenderError::new("This response hasn't been triggered yet."))
             }
         }
     }
@@ -222,7 +234,10 @@ impl HandlebarsResponse {
     #[cfg(not(debug_assertions))]
     #[inline]
     /// Get this response's HTML and Etag.
-    pub fn get_html_and_etag(&self, cm: &HandlebarsContextManager) -> Result<(Arc<str>, Arc<EntityTag>), RenderError> {
+    pub fn get_html_and_etag(
+        &self,
+        cm: &HandlebarsContextManager,
+    ) -> Result<(Arc<str>, Arc<EntityTag>), RenderError> {
         match &self.source {
             HandlebarsResponseSource::Template {
                 name,
@@ -256,7 +271,9 @@ impl HandlebarsResponse {
                 Ok(html)
             }
             HandlebarsResponseSource::Cache(key) => {
-                cm.get(key).map(|(html, _)| html.to_string()).ok_or(RenderError::new("This response hasn't been triggered yet."))
+                cm.get(key)
+                    .map(|(html, _)| html.to_string())
+                    .ok_or_else(|| RenderError::new("This response hasn't been triggered yet."))
             }
         }
     }
@@ -276,7 +293,9 @@ impl HandlebarsResponse {
                 Ok(html)
             }
             HandlebarsResponseSource::Cache(key) => {
-                cm.get(key).map(|(html, _)| html.to_string()).ok_or(RenderError::new("This response hasn't been triggered yet."))
+                cm.get(key)
+                    .map(|(html, _)| html.to_string())
+                    .ok_or(RenderError::new("This response hasn't been triggered yet."))
             }
         }
     }
@@ -288,7 +307,9 @@ impl<'a> Responder<'a> for HandlebarsResponse {
 
         let mut response = Response::build();
 
-        let cm = request.guard::<State<HandlebarsContextManager>>().expect("HandlebarsContextManager registered in on_attach");
+        let cm = request
+            .guard::<State<HandlebarsContextManager>>()
+            .expect("HandlebarsContextManager registered in on_attach");
 
         match &self.source {
             HandlebarsResponseSource::Template {
