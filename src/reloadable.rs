@@ -9,7 +9,7 @@ use crate::Handlebars;
 #[derive(Debug)]
 /// Reloadable Handlebars.
 pub struct ReloadableHandlebars {
-    handlebars: Handlebars,
+    handlebars: Handlebars<'static>,
     files: HashMap<&'static str, (PathBuf, Option<SystemTime>)>,
 }
 
@@ -117,7 +117,7 @@ impl Default for ReloadableHandlebars {
 }
 
 impl Deref for ReloadableHandlebars {
-    type Target = Handlebars;
+    type Target = Handlebars<'static>;
 
     #[inline]
     fn deref(&self) -> &Self::Target {
