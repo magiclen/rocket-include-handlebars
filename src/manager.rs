@@ -27,7 +27,7 @@ pub struct HandlebarsContextManager {
 #[educe(Debug)]
 #[allow(clippy::type_complexity)]
 pub struct HandlebarsContextManager {
-    pub handlebars: Handlebars,
+    pub handlebars: Handlebars<'static>,
     #[educe(Debug(ignore))]
     cache_table: Mutex<LruCache<Arc<str>, (Arc<str>, Arc<EntityTag>)>>,
 }
@@ -47,7 +47,7 @@ impl HandlebarsContextManager {
 
     #[cfg(not(debug_assertions))]
     #[inline]
-    pub(crate) fn new(handlebars: Handlebars, cache_capacity: usize) -> HandlebarsContextManager {
+    pub(crate) fn new(handlebars: Handlebars<'static>, cache_capacity: usize) -> HandlebarsContextManager {
         HandlebarsContextManager {
             handlebars,
             cache_table: Mutex::new(LruCache::with_capacity(cache_capacity)),
