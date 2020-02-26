@@ -84,8 +84,8 @@ macro_rules! handlebars_response {
 #[cfg(debug_assertions)]
 macro_rules! handlebars_response_cache {
     ($cm:expr, $key:expr, $gen:block) => {{
-        drop(&$cm);
-        drop(&$key);
+        drop($cm);
+        drop($key);
         $gen
     }};
 }
