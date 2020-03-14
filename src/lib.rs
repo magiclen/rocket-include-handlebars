@@ -214,11 +214,17 @@ impl HandlebarsResponse {
     ) -> Result<(Arc<str>, Arc<EntityTag>), RenderError> {
         match &self.source {
             HandlebarsResponseSource::Template {
+                minify,
                 name,
                 context,
-                ..
             } => {
                 let html = cm.handlebars.lock().unwrap().render(name, context)?;
+
+                let html = if *minify {
+                    html_minifier::minify(&html).unwrap()
+                } else {
+                    html
+                };
 
                 let etag = compute_html_etag(&html);
 
@@ -240,11 +246,17 @@ impl HandlebarsResponse {
     ) -> Result<(Arc<str>, Arc<EntityTag>), RenderError> {
         match &self.source {
             HandlebarsResponseSource::Template {
+                minify,
                 name,
                 context,
-                ..
             } => {
                 let html = cm.handlebars.render(name, context)?;
+
+                let html = if *minify {
+                    html_minifier::minify(&html).unwrap()
+                } else {
+                    html
+                };
 
                 let etag = compute_html_etag(&html);
 
@@ -258,7 +270,7 @@ impl HandlebarsResponse {
 
     #[cfg(debug_assertions)]
     #[inline]
-    /// Get this response's HTML.
+    /// Get this response's HTML without minifying.
     pub fn get_html(&self, cm: &HandlebarsContextManager) -> Result<String, RenderError> {
         match &self.source {
             HandlebarsResponseSource::Template {
@@ -280,7 +292,7 @@ impl HandlebarsResponse {
 
     #[cfg(not(debug_assertions))]
     #[inline]
-    /// Get this response's HTML.
+    /// Get this response's HTML without minifying.
     pub fn get_html(&self, cm: &HandlebarsContextManager) -> Result<String, RenderError> {
         match &self.source {
             HandlebarsResponseSource::Template {
