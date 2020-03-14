@@ -81,7 +81,7 @@ impl ReloadableHandlebars {
         for (name, (file_path, mtime)) in &mut self.files {
             let metadata = file_path
                 .metadata()
-                .map_err(|err| TemplateFileError::IOError(err, name.to_string()))?;
+                .map_err(|err| TemplateFileError::IOError(err, (*name).to_string()))?;
 
             let (reload, new_mtime) = match mtime {
                 Some(mtime) => {

@@ -47,7 +47,10 @@ impl HandlebarsContextManager {
 
     #[cfg(not(debug_assertions))]
     #[inline]
-    pub(crate) fn new(handlebars: Handlebars<'static>, cache_capacity: usize) -> HandlebarsContextManager {
+    pub(crate) fn new(
+        handlebars: Handlebars<'static>,
+        cache_capacity: usize,
+    ) -> HandlebarsContextManager {
         HandlebarsContextManager {
             handlebars,
             cache_table: Mutex::new(LruCache::with_capacity(cache_capacity)),
