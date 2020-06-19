@@ -3,8 +3,8 @@
 #[cfg(debug_assertions)]
 macro_rules! handlebars_resources_initialize {
     ( $handlebars:expr, $($name:expr, $path:expr), * $(,)* ) => {
-        use std::fs;
-        use std::collections::HashSet;
+        use ::std::fs;
+        use ::std::collections::HashSet;
 
         let mut set: HashSet<&'static str> = HashSet::new();
 
@@ -25,8 +25,8 @@ macro_rules! handlebars_resources_initialize {
 #[cfg(not(debug_assertions))]
 macro_rules! handlebars_resources_initialize {
     ( $handlebars:expr, $($name:expr, $path:expr), * $(,)* ) => {
-        use std::fs;
-        use std::collections::HashSet;
+        use ::std::fs;
+        use ::std::collections::HashSet;
 
         let mut set: HashSet<&str> = HashSet::new();
 
@@ -45,8 +45,26 @@ macro_rules! handlebars_resources_initialize {
 /// Used for retrieving and rendering the file you input through the macro `handlebars_resources_initialize!` as a `HandlebarsResponse` instance with rendered HTML. When its `respond_to` method is called, three HTTP headers, **Content-Type**, **Content-Length** and **Etag**, will be automatically added, and the rendered HTML can optionally not be minified.
 #[macro_export]
 macro_rules! handlebars_response {
+    ( $name:expr ) => {
+        {
+            use ::std::collections::HashMap;
+
+            let map: HashMap<u8, u8> = HashMap::new();
+
+            $crate::handlebars_response!($name, map)
+        }
+    };
     ( $name:expr, $data:expr ) => {
-        handlebars_response!(enable_minify $name, $data)
+        $crate::handlebars_response!(enable_minify $name, $data)
+    };
+    ( enable_minify $name:expr ) => {
+        {
+            use ::std::collections::HashMap;
+
+            let map: HashMap<u8, u8> = HashMap::new();
+
+            $crate::handlebars_response!(enable_minify $name, map)
+        }
     };
     ( enable_minify $name:expr, $data:expr ) => {
         {
@@ -55,8 +73,17 @@ macro_rules! handlebars_response {
             HandlebarsResponse::build_from_template(
                 true,
                 $name,
-                $data,
+                &$data,
             ).unwrap()
+        }
+    };
+    ( disable_minify $name:expr ) => {
+        {
+            use ::std::collections::HashMap;
+
+            let map: HashMap<u8, u8> = HashMap::new();
+
+            $crate::handlebars_response!(disable_minify $name, map)
         }
     };
     ( disable_minify $name:expr, $data:expr ) => {
@@ -66,8 +93,17 @@ macro_rules! handlebars_response {
             HandlebarsResponse::build_from_template(
                 false,
                 $name,
-                $data,
+                &$data,
             ).unwrap()
+        }
+    };
+    ( auto_minify $name:expr ) => {
+        {
+            use ::std::collections::HashMap;
+
+            let map: HashMap<u8, u8> = HashMap::new();
+
+            $crate::handlebars_response!(auto_minify $name, map)
         }
     };
     ( auto_minify $name:expr, $data:expr ) => {

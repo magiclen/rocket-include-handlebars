@@ -25,7 +25,7 @@ fn index() -> HandlebarsResponse {
     map.insert("title", "Title");
     map.insert("body", "Hello, world!");
 
-    handlebars_response!("index", &map)
+    handlebars_response!("index", map)
 }
 
 #[get("/disable-minify")]
@@ -35,7 +35,7 @@ fn index_disable_minify() -> HandlebarsResponse {
     map.insert("title", "Title");
     map.insert("body", "Hello, world!");
 
-    handlebars_response!(disable_minify "index", &map)
+    handlebars_response!(disable_minify "index", map)
 }
 
 #[get("/2")]
@@ -49,7 +49,7 @@ fn index_2(cm: State<HandlebarsContextManager>) -> HandlebarsResponse {
         map.insert("placeholder", JSONGetTextValue::from_str("Hello, \"world!\""));
         map.insert("id", JSONGetTextValue::from_u64(0));
 
-        handlebars_response!(auto_minify "index2", &map)
+        handlebars_response!(auto_minify "index2", map)
     })
 }
 
