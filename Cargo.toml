@@ -1,6 +1,6 @@
 [package]
 name = "rocket-include-handlebars"
-version = "0.12.13"
+version = "0.12.14"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/rocket-include-handlebars"
@@ -42,3 +42,5 @@ helper_inc = ["helper"]
 helper_dec = ["helper"]
 helper_eq_str = ["helper"]
 helper_ne_str = ["helper"]
+helper_lookup_map = ["helper"]
+helper_lookup_array = ["helper"]
