@@ -51,7 +51,7 @@ use serde::Serialize;
 use serde_json::{Error as SerdeJsonError, Value};
 
 use rocket::fairing::Fairing;
-use rocket::http::Status;
+use rocket::http::{ContentType, Status};
 use rocket::request::Request;
 use rocket::response::{self, Responder, Response};
 use rocket::State;
@@ -354,8 +354,8 @@ impl<'a> Responder<'a> for HandlebarsResponse {
                 };
 
                 response
+                    .header(ContentType::HTML)
                     .raw_header("ETag", etag)
-                    .raw_header("Content-Type", "text/html; charset=utf-8")
                     .sized_body(Cursor::new(html));
             }
             HandlebarsResponseSource::Cache(key) => {
@@ -379,8 +379,8 @@ impl<'a> Responder<'a> for HandlebarsResponse {
                 };
 
                 response
+                    .header(ContentType::HTML)
                     .raw_header("ETag", etag)
-                    .raw_header("Content-Type", "text/html; charset=utf-8")
                     .sized_body(ArcU8Reader::new(html));
             }
         }
