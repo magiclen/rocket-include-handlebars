@@ -18,7 +18,7 @@ use crate::lru_time_cache::LruCache;
 pub struct HandlebarsContextManager {
     pub handlebars: Mutex<ReloadableHandlebars>,
     #[educe(Debug(ignore))]
-    cache_table: Mutex<LruCache<Arc<str>, (Arc<str>, Arc<EntityTag>)>>,
+    cache_table: Mutex<LruCache<String, (Arc<str>, Arc<EntityTag>)>>,
 }
 
 /// To monitor the state of Handlebars.
@@ -29,7 +29,7 @@ pub struct HandlebarsContextManager {
 pub struct HandlebarsContextManager {
     pub handlebars: Handlebars<'static>,
     #[educe(Debug(ignore))]
-    cache_table: Mutex<LruCache<Arc<str>, (Arc<str>, Arc<EntityTag>)>>,
+    cache_table: Mutex<LruCache<String, (Arc<str>, Arc<EntityTag>)>>,
 }
 
 impl HandlebarsContextManager {
@@ -81,7 +81,7 @@ impl HandlebarsContextManager {
 
     #[inline]
     /// Insert a cache.
-    pub fn insert<S: Into<Arc<str>>>(
+    pub fn insert<S: Into<String>>(
         &self,
         key: S,
         cache: (Arc<str>, Arc<EntityTag>),
