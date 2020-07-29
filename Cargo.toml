@@ -1,16 +1,16 @@
 [package]
 name = "rocket-include-handlebars"
-version = "0.12.19"
+version = "0.12.20"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/rocket-include-handlebars"
 homepage = "https://magiclen.org/rocket-include-handlebars"
 keywords = ["rocket", "server", "web", "static", "handlebars"]
 categories = ["web-programming"]
-description= "This is a crate which provides macros `handlebars_resources_initialize!` and `handlebars_response!` to statically include HBS (Handlebars) files from your Rust project and make them be the HTTP response sources quickly."
+description = "This is a crate which provides macros `handlebars_resources_initialize!` and `handlebars_response!` to statically include HBS (Handlebars) files from your Rust project and make them be the HTTP response sources quickly."
 readme = "README.md"
 license = "MIT"
-include = ["src/**/*", "Cargo.toml"]
+include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [badges.travis-ci]
 repository = "magiclen/rocket-include-handlebars"
