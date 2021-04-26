@@ -64,3 +64,30 @@ macro_rules! handlebars_response {
         }
     };
 }
+
+/// Used for generating a fairing for handlebars resources.
+#[macro_export]
+macro_rules! handlebars_resources_initializer {
+    ( $($name:expr => $path:expr), * $(,)* ) => {
+        {
+            $crate::HandlebarsResponse::fairing(|handlebars| {
+                $crate::handlebars_resources_initialize!(
+                    handlebars
+                    $(, $name => $path)*
+                );
+            })
+        }
+    };
+    ( $capacity:expr; $($name:expr => $path:expr), * $(,)*  ) => {
+        {
+            $crate::HandlebarsResponse::fairing_cache(|handlebars| {
+                $crate::handlebars_resources_initialize!(
+                    handlebars
+                    $(, $name => $path)*
+                );
+
+                $capacity
+            })
+        }
+    };
+}
