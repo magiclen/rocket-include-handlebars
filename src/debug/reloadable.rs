@@ -3,8 +3,8 @@ use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use crate::handlebars::TemplateFileError;
-use crate::Handlebars;
+use crate::functions::add_helpers;
+use crate::handlebars::{Handlebars, TemplateFileError};
 
 #[derive(Debug)]
 /// Reloadable Handlebars.
@@ -14,13 +14,12 @@ pub struct ReloadableHandlebars {
 }
 
 impl ReloadableHandlebars {
-    #[cfg(feature = "helper")]
-    #[inline]
     /// Create an instance of `ReloadableHandlebars`.
+    #[inline]
     pub fn new() -> ReloadableHandlebars {
         let mut handlebars = Handlebars::new();
 
-        handlebars_helpers!(handlebars);
+        add_helpers(&mut handlebars);
 
         ReloadableHandlebars {
             handlebars,
@@ -28,18 +27,8 @@ impl ReloadableHandlebars {
         }
     }
 
-    #[cfg(not(feature = "helper"))]
-    #[inline]
-    /// Create an instance of `ReloadableHandlebars`.
-    pub fn new() -> ReloadableHandlebars {
-        ReloadableHandlebars {
-            handlebars: Handlebars::new(),
-            files: HashMap::new(),
-        }
-    }
-
-    #[inline]
     /// Register a template from a path and it can be reloaded automatically.
+    #[inline]
     pub fn register_template_file<P: Into<PathBuf>>(
         &mut self,
         name: &'static str,
@@ -60,8 +49,8 @@ impl ReloadableHandlebars {
         Ok(())
     }
 
-    #[inline]
     /// Unregister a template from a file by a name.
+    #[inline]
     pub fn unregister_template_file<S: AsRef<str>>(&mut self, name: S) -> Option<PathBuf> {
         let name = name.as_ref();
 
@@ -75,8 +64,8 @@ impl ReloadableHandlebars {
         }
     }
 
-    #[inline]
     /// Reload templates if needed.
+    #[inline]
     pub fn reload_if_needed(&mut self) -> Result<(), TemplateFileError> {
         for (name, (file_path, mtime)) in &mut self.files {
             let metadata = file_path

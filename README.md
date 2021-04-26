@@ -1,7 +1,7 @@
 Include Handlebars Templates for Rocket Framework
 ====================
 
-[![Build Status](https://travis-ci.org/magiclen/rocket-include-handlebars.svg?branch=master)](https://travis-ci.org/magiclen/rocket-include-handlebars)
+[![CI](https://github.com/magiclen/rocket-include-handlebars/actions/workflows/ci.yml/badge.svg)](https://github.com/magiclen/rocket-include-handlebars/actions/workflows/ci.yml)
 
 This is a crate which provides macros `handlebars_resources_initialize!` and `handlebars_response!` to statically include HBS (Handlebars) files from your Rust project and make them be the HTTP response sources quickly.
 

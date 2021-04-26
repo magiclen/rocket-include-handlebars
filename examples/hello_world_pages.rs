@@ -1,5 +1,3 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
 #[macro_use]
 extern crate rocket;
 
@@ -7,61 +5,66 @@ extern crate rocket;
 extern crate rocket_include_handlebars;
 
 #[macro_use]
-extern crate handlebars;
-
-extern crate json_gettext;
+extern crate serde_json;
 
 use std::collections::HashMap;
 
 use rocket::State;
-use rocket_include_handlebars::{HandlebarsContextManager, HandlebarsResponse};
 
-use json_gettext::JSONGetTextValue;
+use rocket_include_handlebars::{EtagIfNoneMatch, HandlebarsContextManager, HandlebarsResponse};
 
 #[get("/")]
-fn index() -> HandlebarsResponse {
+fn index(
+    handlebars_cm: State<HandlebarsContextManager>,
+    etag_if_none_match: EtagIfNoneMatch,
+) -> HandlebarsResponse {
     let mut map = HashMap::new();
 
     map.insert("title", "Title");
     map.insert("body", "Hello, world!");
 
-    handlebars_response!("index", map)
+    handlebars_response!(handlebars_cm, etag_if_none_match, "index", map)
 }
 
 #[get("/disable-minify")]
-fn index_disable_minify() -> HandlebarsResponse {
+fn index_disable_minify(
+    handlebars_cm: State<HandlebarsContextManager>,
+    etag_if_none_match: EtagIfNoneMatch,
+) -> HandlebarsResponse {
     let mut map = HashMap::new();
 
     map.insert("title", "Title");
     map.insert("body", "Hello, world!");
 
-    handlebars_response!(disable_minify "index", map)
+    handlebars_response!(disable_minify handlebars_cm, etag_if_none_match, "index", map)
 }
 
 #[get("/2")]
-fn index_2(cm: State<HandlebarsContextManager>) -> HandlebarsResponse {
-    handlebars_response_cache!(cm, "index-2", {
+fn index_2(
+    cm: State<HandlebarsContextManager>,
+    etag_if_none_match: EtagIfNoneMatch,
+) -> HandlebarsResponse {
+    handlebars_response_cache!(cm, etag_if_none_match, "index-2", {
         println!("Generate index-2 and cache it...");
 
-        let mut map = HashMap::new();
+        let json = json! ({
+            "title": "Title",
+            "placeholder": "Hello, \"world!\"",
+            "id": 0,
+        });
 
-        map.insert("title", JSONGetTextValue::from_str("Title"));
-        map.insert("placeholder", JSONGetTextValue::from_str("Hello, \"world!\""));
-        map.insert("id", JSONGetTextValue::from_u64(0));
-
-        handlebars_response!(auto_minify "index2", map)
+        handlebars_response!(auto_minify cm, EtagIfNoneMatch::default(), "index2", json)
     })
 }
 
-fn main() {
-    rocket::ignite()
+#[launch]
+fn rocket() -> _ {
+    rocket::build()
         .attach(HandlebarsResponse::fairing(|handlebars| {
             handlebars_resources_initialize!(
                 handlebars,
-                "index",
-                "examples/views/index.hbs",
-                "index2",
-                "examples/views/index2.hbs"
+                "index" => "examples/views/index.hbs",
+                "index2" => "examples/views/index2.hbs"
             );
 
             handlebars_helper!(inc: |x: i64| x + 1);
@@ -72,5 +75,4 @@ fn main() {
         }))
         .mount("/", routes![index, index_disable_minify])
         .mount("/", routes![index_2])
-        .launch();
 }
