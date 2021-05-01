@@ -12,7 +12,7 @@ macro_rules! handlebars_resources_initialize {
                 if set.contains($name) {
                     panic!("The name `{}` is duplicated.", $name);
                 } else {
-                    $handlebars.register_template_string($name, include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/", $path))).unwrap();
+                    $handlebars.register_template_string($name, include_str!($crate::slash_formatter::concat_with_file_separator_debug_release!(env!("CARGO_MANIFEST_DIR"), "/", $path))).unwrap();
 
                     set.insert($name);
                 }
