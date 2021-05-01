@@ -20,15 +20,15 @@ extern crate handlebars;
 #[macro_use]
 extern crate educe;
 
-
+#[doc(hidden)]
+pub extern crate slash_formatter;
 
 mod functions;
 
 #[cfg(debug_assertions)]
 mod debug;
 
-#[cfg(not(debug_assertions))]#[doc(hidden)]
-pub extern crate slash_formatter;
+#[cfg(not(debug_assertions))]
 mod release;
 
 mod macros;
