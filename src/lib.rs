@@ -21,7 +21,7 @@ extern crate handlebars;
 extern crate educe;
 
 #[doc(hidden)]
-pub extern crate slash_formatter;
+pub extern crate manifest_dir_macros;
 
 mod functions;
 

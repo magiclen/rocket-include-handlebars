@@ -64,7 +64,7 @@ fn rocket() -> _ {
             handlebars_resources_initialize!(
                 handlebars,
                 "index" => "examples/views/index.hbs",
-                "index2" => "examples/views/index2.hbs"
+                "index2" => ("examples", "views", "index2.hbs")
             );
 
             handlebars_helper!(inc: |x: i64| x + 1);
