@@ -1,4 +1,4 @@
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use crate::rocket::data::Data;
 use crate::rocket::fairing::{Fairing, Info, Kind};
@@ -29,7 +29,8 @@ impl Fairing for HandlebarsResponseFairing {
     async fn on_ignite(&self, rocket: Rocket<Build>) -> Result<Rocket<Build>, Rocket<Build>> {
         let handlebars = Mutex::new(ReloadableHandlebars::new());
 
-        let cache_capacity = (self.custom_callback)(&mut handlebars.lock().unwrap());
+        let cache_capacity =
+            (self.custom_callback)(&mut handlebars.lock().unwrap_or_else(PoisonError::into_inner));
 
         let state = HandlebarsContextManager::new(handlebars, cache_capacity);
 
@@ -43,7 +44,7 @@ impl Fairing for HandlebarsResponseFairing {
             .await
             .expect("HandlebarsContextManager registered in on_attach");
 
-        cm.handlebars.lock().unwrap().reload_if_needed().unwrap();
+        cm.handlebars.lock().unwrap_or_else(PoisonError::into_inner).reload_if_needed().unwrap();
     }
 }
 

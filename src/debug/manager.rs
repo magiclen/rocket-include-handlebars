@@ -2,7 +2,7 @@ extern crate html_minifier;
 extern crate lru_time_cache;
 extern crate serde;
 
-use std::sync::Mutex;
+use std::sync::{Mutex, PoisonError};
 
 use serde::Serialize;
 
@@ -40,7 +40,7 @@ impl HandlebarsContextManager {
     ) -> HandlebarsResponse {
         self.handlebars
             .lock()
-            .unwrap()
+            .unwrap_or_else(PoisonError::into_inner)
             .render(name.as_ref(), &context)
             .map(|html| {
                 let etag = compute_data_etag(html.as_bytes());
@@ -63,6 +63,10 @@ impl HandlebarsContextManager {
     /// Render a template.
     #[inline]
     pub fn render<S: AsRef<str>, V: Serialize>(&self, name: S, context: V) -> String {
-        self.handlebars.lock().unwrap().render(name.as_ref(), &context).unwrap()
+        self.handlebars
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .render(name.as_ref(), &context)
+            .unwrap()
     }
 }
