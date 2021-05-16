@@ -3,7 +3,7 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 use crate::rocket::data::Data;
 use crate::rocket::fairing::{Fairing, Info, Kind};
 use crate::rocket::request::Request;
-use crate::rocket::{Build, Rocket, State};
+use crate::rocket::{Build, Rocket};
 
 use super::{HandlebarsContextManager, HandlebarsResponse, ReloadableHandlebars};
 
@@ -40,8 +40,8 @@ impl Fairing for HandlebarsResponseFairing {
     #[inline]
     async fn on_request(&self, req: &mut Request<'_>, _data: &mut Data) {
         let cm = req
-            .guard::<State<HandlebarsContextManager>>()
-            .await
+            .rocket()
+            .state::<HandlebarsContextManager>()
             .expect("HandlebarsContextManager registered in on_attach");
 
         cm.handlebars.lock().unwrap_or_else(PoisonError::into_inner).reload_if_needed().unwrap();

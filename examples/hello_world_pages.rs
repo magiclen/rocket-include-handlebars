@@ -15,7 +15,7 @@ use rocket_include_handlebars::{EtagIfNoneMatch, HandlebarsContextManager, Handl
 
 #[get("/")]
 fn index(
-    handlebars_cm: State<HandlebarsContextManager>,
+    handlebars_cm: &State<HandlebarsContextManager>,
     etag_if_none_match: EtagIfNoneMatch,
 ) -> HandlebarsResponse {
     let mut map = HashMap::new();
@@ -28,7 +28,7 @@ fn index(
 
 #[get("/disable-minify")]
 fn index_disable_minify(
-    handlebars_cm: State<HandlebarsContextManager>,
+    handlebars_cm: &State<HandlebarsContextManager>,
     etag_if_none_match: EtagIfNoneMatch,
 ) -> HandlebarsResponse {
     let mut map = HashMap::new();
@@ -41,7 +41,7 @@ fn index_disable_minify(
 
 #[get("/2")]
 fn index_2(
-    cm: State<HandlebarsContextManager>,
+    cm: &State<HandlebarsContextManager>,
     etag_if_none_match: EtagIfNoneMatch,
 ) -> HandlebarsResponse {
     handlebars_response_cache!(cm, etag_if_none_match, "index-2", {
