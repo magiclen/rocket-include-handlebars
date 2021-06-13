@@ -38,7 +38,7 @@ impl Fairing for HandlebarsResponseFairing {
     }
 
     #[inline]
-    async fn on_request(&self, req: &mut Request<'_>, _data: &mut Data) {
+    async fn on_request(&self, req: &mut Request<'_>, _data: &mut Data<'_>) {
         let cm = req
             .rocket()
             .state::<HandlebarsContextManager>()
