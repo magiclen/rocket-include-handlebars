@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 
 use crate::functions::add_helpers;
-use crate::handlebars::{Handlebars, TemplateFileError};
+use crate::handlebars::{Handlebars, TemplateError};
 
 #[derive(Debug)]
 /// Reloadable Handlebars.
@@ -33,12 +33,11 @@ impl ReloadableHandlebars {
         &mut self,
         name: &'static str,
         file_path: P,
-    ) -> Result<(), TemplateFileError> {
+    ) -> Result<(), TemplateError> {
         let file_path = file_path.into();
 
-        let metadata = file_path
-            .metadata()
-            .map_err(|err| TemplateFileError::IOError(err, name.to_string()))?;
+        let metadata =
+            file_path.metadata().map_err(|err| TemplateError::from((err, String::from(name))))?;
 
         let mtime = metadata.modified().ok();
 
@@ -66,11 +65,11 @@ impl ReloadableHandlebars {
 
     /// Reload templates if needed.
     #[inline]
-    pub fn reload_if_needed(&mut self) -> Result<(), TemplateFileError> {
-        for (name, (file_path, mtime)) in &mut self.files {
+    pub fn reload_if_needed(&mut self) -> Result<(), TemplateError> {
+        for (&name, (file_path, mtime)) in &mut self.files {
             let metadata = file_path
                 .metadata()
-                .map_err(|err| TemplateFileError::IOError(err, (*name).to_string()))?;
+                .map_err(|err| TemplateError::from((err, String::from(name))))?;
 
             let (reload, new_mtime) = match mtime {
                 Some(mtime) => {
