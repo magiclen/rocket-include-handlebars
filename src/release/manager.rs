@@ -1,11 +1,11 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use handlebars::Handlebars;
 use lru_time_cache::LruCache;
 use serde::Serialize;
 
 use crate::functions::compute_data_etag;
-use crate::handlebars::Handlebars;
 use crate::{EntityTag, EtagIfNoneMatch};
 
 use super::HandlebarsResponse;
@@ -69,10 +69,10 @@ impl HandlebarsContextManager {
         key: K,
     ) -> Option<HandlebarsResponse> {
         self.cache_table.lock().unwrap().get(key.as_ref()).map(|(html, etag)| {
-            if etag_if_none_match.weak_eq(&etag) {
+            if etag_if_none_match.weak_eq(etag) {
                 HandlebarsResponse::not_modified()
             } else {
-                HandlebarsResponse::build_cache(html.clone(), &etag)
+                HandlebarsResponse::build_cache(html.clone(), etag)
             }
         })
     }

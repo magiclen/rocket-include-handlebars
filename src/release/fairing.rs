@@ -1,8 +1,9 @@
-use crate::rocket::fairing::{Fairing, Info, Kind};
-use crate::rocket::{Build, Rocket};
+use rocket::fairing::{Fairing, Info, Kind};
+use rocket::{Build, Rocket};
+
+use handlebars::Handlebars;
 
 use crate::functions::add_helpers;
-use crate::handlebars::Handlebars;
 
 use super::{HandlebarsContextManager, HandlebarsResponse};
 
