@@ -1,4 +1,5 @@
-use crate::handlebars::*;
+use handlebars::*;
+
 use crate::EntityTag;
 
 #[inline]

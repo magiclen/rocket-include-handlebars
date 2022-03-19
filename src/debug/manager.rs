@@ -1,7 +1,3 @@
-extern crate html_minifier;
-extern crate lru_time_cache;
-extern crate serde;
-
 use std::sync::{Mutex, PoisonError};
 
 use serde::Serialize;

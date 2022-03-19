@@ -1,5 +1,3 @@
-extern crate rocket_include_handlebars;
-
 use rocket_include_handlebars::*;
 
 #[test]

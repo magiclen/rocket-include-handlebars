@@ -11,12 +11,6 @@ This is a crate which provides macros `handlebars_resources_initialize!` and `ha
 See `examples`.
 */
 
-extern crate rocket;
-
-extern crate rocket_etag_if_none_match;
-
-extern crate handlebars;
-
 #[macro_use]
 extern crate educe;
 

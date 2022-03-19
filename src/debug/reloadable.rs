@@ -3,8 +3,9 @@ use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 use std::time::SystemTime;
 
+use handlebars::{Handlebars, TemplateError};
+
 use crate::functions::add_helpers;
-use crate::handlebars::{Handlebars, TemplateError};
 
 #[derive(Debug)]
 /// Reloadable Handlebars.

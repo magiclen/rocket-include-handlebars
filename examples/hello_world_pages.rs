@@ -4,14 +4,13 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_include_handlebars;
 
-#[macro_use]
-extern crate serde_json;
-
 use std::collections::HashMap;
 
 use rocket::State;
 
 use rocket_include_handlebars::{EtagIfNoneMatch, HandlebarsContextManager, HandlebarsResponse};
+
+use serde_json::json;
 
 #[get("/")]
 fn index(
