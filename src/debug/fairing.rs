@@ -11,6 +11,7 @@ const FAIRING_NAME: &str = "Handlebars (Debug)";
 
 /// The fairing of `HandlebarsResponse`.
 pub struct HandlebarsResponseFairing {
+    #[allow(clippy::type_complexity)]
     pub(crate) custom_callback:
         Box<dyn Fn(&mut MutexGuard<ReloadableHandlebars>) -> usize + Send + Sync + 'static>,
 }

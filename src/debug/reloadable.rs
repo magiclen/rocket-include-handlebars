@@ -34,7 +34,7 @@ impl ReloadableHandlebars {
         &mut self,
         name: &'static str,
         file_path: P,
-    ) -> Result<(), TemplateError> {
+    ) -> Result<(), Box<TemplateError>> {
         let file_path = file_path.into();
 
         let metadata =
@@ -66,7 +66,7 @@ impl ReloadableHandlebars {
 
     /// Reload templates if needed.
     #[inline]
-    pub fn reload_if_needed(&mut self) -> Result<(), TemplateError> {
+    pub fn reload_if_needed(&mut self) -> Result<(), Box<TemplateError>> {
         for (&name, (file_path, mtime)) in &mut self.files {
             let metadata = file_path
                 .metadata()
