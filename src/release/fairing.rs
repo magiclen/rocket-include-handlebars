@@ -1,11 +1,11 @@
-use rocket::fairing::{Fairing, Info, Kind};
-use rocket::{Build, Rocket};
-
 use handlebars::Handlebars;
-
-use crate::functions::add_helpers;
+use rocket::{
+    fairing::{Fairing, Info, Kind},
+    Build, Rocket,
+};
 
 use super::{HandlebarsContextManager, HandlebarsResponse};
+use crate::functions::add_helpers;
 
 const FAIRING_NAME: &str = "Handlebars";
 
@@ -19,8 +19,7 @@ impl Fairing for HandlebarsResponseFairing {
     #[inline]
     fn info(&self) -> Info {
         Info {
-            name: FAIRING_NAME,
-            kind: Kind::Ignite,
+            name: FAIRING_NAME, kind: Kind::Ignite
         }
     }
 
@@ -61,7 +60,7 @@ impl HandlebarsResponse {
     where
         F: Fn(&mut Handlebars) -> usize + Send + Sync + 'static, {
         HandlebarsResponseFairing {
-            custom_callback: Box::new(f),
+            custom_callback: Box::new(f)
         }
     }
 }

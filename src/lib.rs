@@ -29,13 +29,9 @@ mod macros;
 
 #[cfg(debug_assertions)]
 pub use debug::*;
-
+pub use handlebars::handlebars_helper;
 #[cfg(not(debug_assertions))]
 pub use release::*;
-
-pub use handlebars::handlebars_helper;
-
-pub use rocket_etag_if_none_match::entity_tag::EntityTag;
-pub use rocket_etag_if_none_match::EtagIfNoneMatch;
+pub use rocket_etag_if_none_match::{entity_tag::EntityTag, EtagIfNoneMatch};
 
 const DEFAULT_CACHE_CAPACITY: usize = 64;

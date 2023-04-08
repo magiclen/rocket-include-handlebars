@@ -1,15 +1,17 @@
 use std::io::Cursor;
 
-use rocket::http::Status;
-use rocket::request::Request;
-use rocket::response::{self, Responder, Response};
+use rocket::{
+    http::Status,
+    request::Request,
+    response::{self, Responder, Response},
+};
 
 use crate::{EntityTag, EtagIfNoneMatch};
 
 #[derive(Debug)]
 struct HandlebarsResponseInner {
     content: String,
-    etag: String,
+    etag:    String,
 }
 
 #[derive(Debug)]
@@ -27,7 +29,7 @@ impl HandlebarsResponse {
         HandlebarsResponse {
             inner: Some(HandlebarsResponseInner {
                 content: content.into(),
-                etag: etag.to_string(),
+                etag:    etag.to_string(),
             }),
         }
     }
@@ -36,7 +38,7 @@ impl HandlebarsResponse {
     #[inline]
     pub const fn not_modified() -> HandlebarsResponse {
         HandlebarsResponse {
-            inner: None,
+            inner: None
         }
     }
 

@@ -1,7 +1,9 @@
-use std::collections::HashMap;
-use std::ops::{Deref, DerefMut};
-use std::path::PathBuf;
-use std::time::SystemTime;
+use std::{
+    collections::HashMap,
+    ops::{Deref, DerefMut},
+    path::PathBuf,
+    time::SystemTime,
+};
 
 use handlebars::{Handlebars, TemplateError};
 
@@ -11,7 +13,7 @@ use crate::functions::add_helpers;
 /// Reloadable Handlebars.
 pub struct ReloadableHandlebars {
     handlebars: Handlebars<'static>,
-    files: HashMap<&'static str, (PathBuf, Option<SystemTime>)>,
+    files:      HashMap<&'static str, (PathBuf, Option<SystemTime>)>,
 }
 
 impl ReloadableHandlebars {
@@ -59,7 +61,7 @@ impl ReloadableHandlebars {
                 self.handlebars.unregister_template(name);
 
                 Some(file_path)
-            }
+            },
             None => None,
         }
     }
@@ -73,18 +75,14 @@ impl ReloadableHandlebars {
                 .map_err(|err| TemplateError::from((err, String::from(name))))?;
 
             let (reload, new_mtime) = match mtime {
-                Some(mtime) => {
-                    match metadata.modified() {
-                        Ok(new_mtime) => (new_mtime > *mtime, Some(new_mtime)),
-                        Err(_) => (true, None),
-                    }
-                }
-                None => {
-                    match metadata.modified() {
-                        Ok(new_mtime) => (true, Some(new_mtime)),
-                        Err(_) => (true, None),
-                    }
-                }
+                Some(mtime) => match metadata.modified() {
+                    Ok(new_mtime) => (new_mtime > *mtime, Some(new_mtime)),
+                    Err(_) => (true, None),
+                },
+                None => match metadata.modified() {
+                    Ok(new_mtime) => (true, Some(new_mtime)),
+                    Err(_) => (true, None),
+                },
             };
 
             if reload {

@@ -1,14 +1,11 @@
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use handlebars::Handlebars;
 use lru_time_cache::LruCache;
 use serde::Serialize;
 
-use crate::functions::compute_data_etag;
-use crate::{EntityTag, EtagIfNoneMatch};
-
 use super::HandlebarsResponse;
+use crate::{functions::compute_data_etag, EntityTag, EtagIfNoneMatch};
 
 #[allow(clippy::type_complexity)]
 /// To monitor the state of Handlebars.
@@ -17,7 +14,7 @@ use super::HandlebarsResponse;
 pub struct HandlebarsContextManager {
     pub handlebars: Handlebars<'static>,
     #[educe(Debug(ignore))]
-    cache_table: Mutex<LruCache<String, (Arc<str>, Arc<EntityTag<'static>>)>>,
+    cache_table:    Mutex<LruCache<String, (Arc<str>, Arc<EntityTag<'static>>)>>,
 }
 
 impl HandlebarsContextManager {
@@ -49,11 +46,7 @@ impl HandlebarsContextManager {
                 if etag_if_none_match.weak_eq(&etag) {
                     HandlebarsResponse::not_modified()
                 } else {
-                    let html = if minify {
-                        html_minifier::minify(html).unwrap()
-                    } else {
-                        html
-                    };
+                    let html = if minify { html_minifier::minify(html).unwrap() } else { html };
 
                     HandlebarsResponse::build_not_cache(html, &etag)
                 }

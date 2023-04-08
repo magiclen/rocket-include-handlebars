@@ -35,10 +35,10 @@ macro_rules! handlebars_response_cache {
                         let res = $crate::HandlebarsResponse::build_cache(content.clone(), &etag);
                         $cm.insert($key, (content, ::std::sync::Arc::new(etag)));
                         res
-                    }
+                    },
                     None => $crate::HandlebarsResponse::not_modified(),
                 }
-            }
+            },
         }
     };
 }

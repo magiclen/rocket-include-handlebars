@@ -7,9 +7,7 @@ extern crate rocket_include_handlebars;
 use std::collections::HashMap;
 
 use rocket::State;
-
 use rocket_include_handlebars::{EtagIfNoneMatch, HandlebarsContextManager, HandlebarsResponse};
-
 use serde_json::json;
 
 #[get("/")]

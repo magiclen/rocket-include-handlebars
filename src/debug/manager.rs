@@ -2,10 +2,8 @@ use std::sync::{Mutex, PoisonError};
 
 use serde::Serialize;
 
-use crate::functions::compute_data_etag;
-use crate::EtagIfNoneMatch;
-
 use super::{HandlebarsResponse, ReloadableHandlebars};
+use crate::{functions::compute_data_etag, EtagIfNoneMatch};
 
 /// To monitor the state of Handlebars.
 #[derive(Educe)]
@@ -44,11 +42,7 @@ impl HandlebarsContextManager {
                 if etag_if_none_match.weak_eq(&etag) {
                     HandlebarsResponse::not_modified()
                 } else {
-                    let html = if minify {
-                        html_minifier::minify(html).unwrap()
-                    } else {
-                        html
-                    };
+                    let html = if minify { html_minifier::minify(html).unwrap() } else { html };
 
                     HandlebarsResponse::build_not_cache(html, &etag)
                 }
