@@ -3,7 +3,7 @@ use std::sync::{Mutex, PoisonError};
 use serde::Serialize;
 
 use super::{HandlebarsResponse, ReloadableHandlebars};
-use crate::{functions::compute_data_etag, EtagIfNoneMatch};
+use crate::{EtagIfNoneMatch, functions::compute_data_etag};
 
 /// To monitor the state of Handlebars.
 #[derive(Educe)]

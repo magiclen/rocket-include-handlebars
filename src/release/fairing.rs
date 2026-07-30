@@ -1,7 +1,7 @@
 use handlebars::Handlebars;
 use rocket::{
-    fairing::{Fairing, Info, Kind},
     Build, Rocket,
+    fairing::{Fairing, Info, Kind},
 };
 
 use super::{HandlebarsContextManager, HandlebarsResponse};

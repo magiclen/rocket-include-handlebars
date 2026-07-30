@@ -5,7 +5,7 @@ use lru_time_cache::LruCache;
 use serde::Serialize;
 
 use super::HandlebarsResponse;
-use crate::{functions::compute_data_etag, EntityTag, EtagIfNoneMatch};
+use crate::{EntityTag, EtagIfNoneMatch, functions::compute_data_etag};
 
 #[allow(clippy::type_complexity)]
 /// To monitor the state of Handlebars.
