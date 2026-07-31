@@ -3,10 +3,9 @@
 macro_rules! handlebars_resources_initialize {
     ( $handlebars:expr, $($name:expr => $path:expr), * $(,)* ) => {
         {
-            use ::std::fs;
             use ::std::collections::HashSet;
 
-            let mut set: HashSet<&str> = HashSet::new();
+            let mut set: HashSet<&'static str> = HashSet::new();
 
             $(
                 if set.contains($name) {
@@ -32,9 +31,9 @@ macro_rules! handlebars_response_cache {
 
                 match res.into_html_and_etag() {
                     Some((content, etag)) => {
-                        let res = $crate::HandlebarsResponse::build_cache(content.clone(), &etag);
-                        $cm.insert($key, (content, ::std::sync::Arc::new(etag)));
-                        res
+                        $cm.insert($key, (content.clone(), etag.clone()));
+
+                        $crate::HandlebarsResponse::build_cache(content, etag)
                     },
                     None => $crate::HandlebarsResponse::not_modified(),
                 }

@@ -12,7 +12,7 @@ pub(crate) fn compute_data_etag<B: AsRef<[u8]> + ?Sized>(data: &B) -> EntityTag<
 pub(crate) fn add_helpers(handlebars: &mut Handlebars) {
     #[cfg(feature = "helper_inc")]
     {
-        handlebars::handlebars_helper!(inc: |x: i64| x + 1);
+        handlebars_helper!(inc: |x: i64| x + 1);
 
         handlebars.register_helper("inc", Box::new(inc));
     }
@@ -31,7 +31,7 @@ pub(crate) fn add_helpers(handlebars: &mut Handlebars) {
         handlebars.register_helper("eq_str", Box::new(eq_str));
     }
 
-    #[cfg(feature = "helper_eq_str")]
+    #[cfg(feature = "helper_ne_str")]
     {
         handlebars_helper!(ne_str: |x: str, y: str| x != y);
 

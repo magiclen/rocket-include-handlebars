@@ -11,7 +11,7 @@ use crate::{EntityTag, EtagIfNoneMatch};
 #[derive(Debug)]
 struct HandlebarsResponseInner {
     content: String,
-    etag:    String,
+    etag:    EntityTag<'static>,
 }
 
 #[derive(Debug)]
@@ -24,12 +24,12 @@ impl HandlebarsResponse {
     #[inline]
     pub(crate) fn build_not_cache<S: Into<String>>(
         content: S,
-        etag: &EntityTag<'static>,
+        etag: EntityTag<'static>,
     ) -> HandlebarsResponse {
         HandlebarsResponse {
             inner: Some(HandlebarsResponseInner {
                 content: content.into(),
-                etag:    etag.to_string(),
+                etag,
             }),
         }
     }
@@ -45,16 +45,7 @@ impl HandlebarsResponse {
     #[doc(hidden)]
     #[inline]
     pub fn weak_eq(&self, etag_if_none_match: &EtagIfNoneMatch<'_>) -> bool {
-        self.inner
-            .as_ref()
-            .map(|inner| {
-                let etag = unsafe {
-                    EntityTag::with_str_unchecked(false, &inner.etag[1..(inner.etag.len() - 1)])
-                };
-
-                etag_if_none_match.weak_eq(&etag)
-            })
-            .unwrap_or(false)
+        self.inner.as_ref().is_some_and(|inner| etag_if_none_match.weak_eq(&inner.etag))
     }
 }
 
@@ -65,7 +56,7 @@ impl<'r, 'o: 'r> Responder<'r, 'o> for HandlebarsResponse {
 
         if let Some(inner) = self.inner {
             response.raw_header("Content-Type", "text/html; charset=utf-8");
-            response.raw_header("Etag", inner.etag);
+            response.raw_header("Etag", inner.etag.to_string());
 
             response.sized_body(inner.content.len(), Cursor::new(inner.content));
         } else {

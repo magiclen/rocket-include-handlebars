@@ -44,7 +44,7 @@ impl HandlebarsContextManager {
                 } else {
                     let html = if minify { html_minifier::minify(html).unwrap() } else { html };
 
-                    HandlebarsResponse::build_not_cache(html, &etag)
+                    HandlebarsResponse::build_not_cache(html, etag)
                 }
             })
             .unwrap()

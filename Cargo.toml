@@ -1,6 +1,6 @@
 [package]
 name = "rocket-include-handlebars"
-version = "0.13.7"
+version = "0.14.0"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2024"
 rust-version = "1.89"
@@ -34,3 +34,7 @@ helper_dec = []
 helper_eq_str = []
 helper_ne_str = []
 helpers = ["helper_inc", "helper_dec", "helper_eq_str", "helper_ne_str"]
+
+# No public item is feature-gated, so `doc_cfg` is not needed here. `all-features` is only turned on to make docs.rs list every available helper feature.
+[package.metadata.docs.rs]
+all-features = true

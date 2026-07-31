@@ -3,7 +3,6 @@
 macro_rules! handlebars_resources_initialize {
     ( $handlebars:expr, $($name:expr => $path:expr), * $(,)* ) => {
         {
-            use ::std::fs;
             use ::std::collections::HashSet;
 
             let mut set: HashSet<&'static str> = HashSet::new();
