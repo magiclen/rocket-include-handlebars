@@ -12,12 +12,13 @@ use crate::EntityTag;
 enum HandlebarsResponseInner {
     NotCache { content: String, etag: EntityTag<'static> },
     Cache { content: Arc<str>, etag: Arc<EntityTag<'static>> },
+    NotModified(Option<String>),
 }
 
 #[derive(Debug)]
 /// To respond HTML.
 pub struct HandlebarsResponse {
-    inner: Option<HandlebarsResponseInner>,
+    inner: HandlebarsResponseInner,
 }
 
 impl HandlebarsResponse {
@@ -27,10 +28,10 @@ impl HandlebarsResponse {
         etag: EntityTag<'static>,
     ) -> HandlebarsResponse {
         HandlebarsResponse {
-            inner: Some(HandlebarsResponseInner::NotCache {
+            inner: HandlebarsResponseInner::NotCache {
                 content: content.into(),
                 etag,
-            }),
+            },
         }
     }
 
@@ -38,10 +39,10 @@ impl HandlebarsResponse {
     #[inline]
     pub fn build_cache(content: Arc<str>, etag: Arc<EntityTag<'static>>) -> HandlebarsResponse {
         HandlebarsResponse {
-            inner: Some(HandlebarsResponseInner::Cache {
+            inner: HandlebarsResponseInner::Cache {
                 content,
                 etag,
-            }),
+            },
         }
     }
 
@@ -49,23 +50,37 @@ impl HandlebarsResponse {
     #[inline]
     pub const fn not_modified() -> HandlebarsResponse {
         HandlebarsResponse {
-            inner: None
+            inner: HandlebarsResponseInner::NotModified(None)
+        }
+    }
+
+    #[doc(hidden)]
+    #[inline]
+    pub fn not_modified_with_etag(etag: &EntityTag<'_>) -> Self {
+        Self {
+            inner: HandlebarsResponseInner::NotModified(Some(etag.to_string()))
         }
     }
 
     #[doc(hidden)]
     #[inline]
     pub fn into_html_and_etag(self) -> Option<(Arc<str>, Arc<EntityTag<'static>>)> {
+        self.into_cache_parts().ok()
+    }
+
+    #[doc(hidden)]
+    #[inline]
+    pub fn into_cache_parts(self) -> Result<(Arc<str>, Arc<EntityTag<'static>>), Self> {
         match self.inner {
-            Some(HandlebarsResponseInner::NotCache {
+            HandlebarsResponseInner::NotCache {
                 content,
                 etag,
-            }) => Some((Arc::from(content), Arc::new(etag))),
-            Some(HandlebarsResponseInner::Cache {
+            } => Ok((Arc::from(content), Arc::new(etag))),
+            HandlebarsResponseInner::Cache {
                 content,
                 etag,
-            }) => Some((content, etag)),
-            None => None,
+            } => Ok((content, etag)),
+            HandlebarsResponseInner::NotModified(_) => Err(self),
         }
     }
 }
@@ -86,27 +101,30 @@ impl<'r, 'o: 'r> Responder<'r, 'o> for HandlebarsResponse {
 
         let mut response = Response::build();
 
-        if let Some(inner) = self.inner {
-            response.raw_header("Content-Type", "text/html; charset=utf-8");
+        match self.inner {
+            HandlebarsResponseInner::NotCache {
+                content,
+                etag,
+            } => {
+                response.raw_header("Content-Type", "text/html; charset=utf-8");
+                response.raw_header(EntityTag::HEADER_NAME, etag.to_string());
+                response.sized_body(content.len(), Cursor::new(content));
+            },
+            HandlebarsResponseInner::Cache {
+                content,
+                etag,
+            } => {
+                response.raw_header("Content-Type", "text/html; charset=utf-8");
+                response.raw_header(EntityTag::HEADER_NAME, etag.to_string());
+                response.sized_body(content.len(), Cursor::new(SharedHtml(content)));
+            },
+            HandlebarsResponseInner::NotModified(etag) => {
+                response.status(Status::NotModified);
 
-            match inner {
-                HandlebarsResponseInner::NotCache {
-                    content,
-                    etag,
-                } => {
-                    response.raw_header("Etag", etag.to_string());
-                    response.sized_body(content.len(), Cursor::new(content));
-                },
-                HandlebarsResponseInner::Cache {
-                    content,
-                    etag,
-                } => {
-                    response.raw_header("Etag", etag.to_string());
-                    response.sized_body(content.len(), Cursor::new(SharedHtml(content)));
-                },
-            }
-        } else {
-            response.status(Status::NotModified);
+                if let Some(etag) = etag {
+                    response.raw_header(EntityTag::HEADER_NAME, etag);
+                }
+            },
         }
 
         response.ok()

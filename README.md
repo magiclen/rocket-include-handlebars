@@ -44,9 +44,24 @@ fn rocket() -> _ {
 ```
 
 * `handlebars_resources_initialize!` is used in the fairing of `HandlebarsResponse` to include Handlebars files into your executable binary file. You need to specify each file's name and its path relative to the directory containing the manifest of your package. In order to reduce the compilation time and allow to hot-reload templates, files are compiled into your executable binary file together, only when you are using the **release** profile.
-* `handlebars_response!` is used for retrieving and rendering the file you input through the macro `handlebars_resources_initialize!` as a `HandlebarsResponse` instance with rendered HTML. When its `respond_to` method is called, three HTTP headers, **Content-Type**, **Content-Length** and **Etag**, will be automatically added, and the rendered HTML can optionally not be minified.
+* `handlebars_response!` renders a registered template as a `HandlebarsResponse`.
+  A `200 OK` response includes `Content-Type`, `Content-Length`, and `ETag`.
+  A `304 Not Modified` response includes the `ETag` and has no body.
+  You can turn off HTML minification.
 * `handlebars_response_cache!` is used for wrapping a `HandlebarsResponse` and its constructor, and use a **key** to cache its HTML and ETag in memory. The cache is generated only when you are using the **release** profile.
 * `handlebars_resources_initializer!` is used for generating a fairing for handlebars resources.
+
+## JSON Object Key Order
+
+`serde_json` sorts the keys of JSON objects in alphabetical order by default, so `{{#each}}` visits the keys of an object in that order.
+Enable the `preserve_json_order` feature to keep the insertion order instead.
+
+```toml
+[dependencies]
+rocket-include-handlebars = { version = "0.14", features = ["preserve_json_order"] }
+```
+
+This feature turns on the `preserve_order` feature of `serde_json`, which affects every crate in your dependency tree.
 
 ## Crates.io
 

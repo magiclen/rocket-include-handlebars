@@ -44,9 +44,14 @@ impl Fairing for HandlebarsResponseFairing {
         let cm = req
             .rocket()
             .state::<HandlebarsContextManager>()
-            .expect("HandlebarsContextManager registered in on_attach");
+            .expect("HandlebarsContextManager registered in on_ignite");
 
-        cm.handlebars.lock().unwrap_or_else(PoisonError::into_inner).reload_if_needed().unwrap();
+        let result =
+            cm.handlebars.lock().unwrap_or_else(PoisonError::into_inner).reload_if_needed();
+
+        if let Err(error) = result {
+            rocket::warn!("Failed to reload {FAIRING_NAME} templates: {error}");
+        }
     }
 }
 
@@ -68,6 +73,7 @@ impl HandlebarsResponse {
     }
 
     /// Create the fairing of `HandlebarsResponse` and set the cache capacity.
+    /// A cache capacity of zero disables caching.
     #[inline]
     pub fn fairing_cache<F>(f: F) -> impl Fairing
     where

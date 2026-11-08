@@ -55,6 +55,7 @@ impl HandlebarsResponse {
     }
 
     /// Create the fairing of `HandlebarsResponse` and set the cache capacity.
+    /// A cache capacity of zero disables caching.
     #[inline]
     pub fn fairing_cache<F>(f: F) -> impl Fairing
     where

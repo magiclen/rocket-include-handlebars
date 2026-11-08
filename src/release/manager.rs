@@ -14,7 +14,7 @@ use crate::{EntityTag, EtagIfNoneMatch, functions::compute_data_etag};
 pub struct HandlebarsContextManager {
     pub handlebars: Handlebars<'static>,
     #[educe(Debug(ignore))]
-    cache_table:    Mutex<LruCache<String, (Arc<str>, Arc<EntityTag<'static>>)>>,
+    cache_table:    Option<Mutex<LruCache<String, (Arc<str>, Arc<EntityTag<'static>>)>>>,
 }
 
 impl HandlebarsContextManager {
@@ -25,7 +25,8 @@ impl HandlebarsContextManager {
     ) -> HandlebarsContextManager {
         HandlebarsContextManager {
             handlebars,
-            cache_table: Mutex::new(LruCache::with_capacity(cache_capacity)),
+            cache_table: (cache_capacity > 0)
+                .then(|| Mutex::new(LruCache::with_capacity(cache_capacity))),
         }
     }
 
@@ -38,38 +39,38 @@ impl HandlebarsContextManager {
         name: S,
         context: V,
     ) -> HandlebarsResponse {
-        self.handlebars
-            .render(name.as_ref(), &context)
-            .map(|html| {
-                let etag = compute_data_etag(html.as_bytes());
+        let html = self.render(name, context);
+        let etag = compute_data_etag(html.as_bytes());
 
-                if etag_if_none_match.weak_eq(&etag) {
-                    HandlebarsResponse::not_modified()
-                } else {
-                    let html = if minify { html_minifier::minify(html).unwrap() } else { html };
+        if etag_if_none_match.weak_eq(&etag) {
+            return HandlebarsResponse::not_modified_with_etag(&etag);
+        }
 
-                    HandlebarsResponse::build_not_cache(html, etag)
-                }
-            })
-            .unwrap()
+        let html = if minify { html_minifier::minify(&html).unwrap_or(html) } else { html };
+
+        HandlebarsResponse::build_not_cache(html, etag)
     }
 
-    /// Build a `HandlebarsResponse`.
+    /// Build a `HandlebarsResponse` from the cache.
+    /// Return `None` if the key is not cached or caching is disabled.
     #[inline]
     pub fn build_from_cache<K: AsRef<str>>(
         &self,
         etag_if_none_match: &EtagIfNoneMatch<'_>,
         key: K,
     ) -> Option<HandlebarsResponse> {
-        self.cache_table.lock().unwrap_or_else(PoisonError::into_inner).get(key.as_ref()).map(
-            |(html, etag)| {
-                if etag_if_none_match.weak_eq(etag) {
-                    HandlebarsResponse::not_modified()
-                } else {
-                    HandlebarsResponse::build_cache(html.clone(), etag.clone())
-                }
-            },
-        )
+        let mut cache = self.cache_table.as_ref()?.lock().unwrap_or_else(PoisonError::into_inner);
+        let (html, etag) = cache.get(key.as_ref())?;
+
+        if etag_if_none_match.weak_eq(etag) {
+            let etag = etag.clone();
+
+            drop(cache);
+
+            Some(HandlebarsResponse::not_modified_with_etag(&etag))
+        } else {
+            Some(HandlebarsResponse::build_cache(html.clone(), etag.clone()))
+        }
     }
 
     /// Render a template.
@@ -81,20 +82,25 @@ impl HandlebarsContextManager {
     /// Clear cache.
     #[inline]
     pub fn clear_cache(&self) {
-        self.cache_table.lock().unwrap_or_else(PoisonError::into_inner).clear();
+        if let Some(cache) = &self.cache_table {
+            cache.lock().unwrap_or_else(PoisonError::into_inner).clear();
+        }
     }
 
     /// Check if a cache key exists.
     #[inline]
     pub fn contains_key<S: AsRef<str>>(&self, key: S) -> bool {
         // `contains_key` is used instead of `get` because merely asking about a key should not make it the most recently used one.
-        self.cache_table.lock().unwrap_or_else(PoisonError::into_inner).contains_key(key.as_ref())
+        self.cache_table.as_ref().is_some_and(|cache| {
+            cache.lock().unwrap_or_else(PoisonError::into_inner).contains_key(key.as_ref())
+        })
     }
 
     /// Get the cache by a specific key.
     #[inline]
     pub fn get<S: AsRef<str>>(&self, key: S) -> Option<(Arc<str>, Arc<EntityTag<'static>>)> {
         self.cache_table
+            .as_ref()?
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
             .get(key.as_ref())
@@ -108,6 +114,10 @@ impl HandlebarsContextManager {
         key: S,
         cache: (Arc<str>, Arc<EntityTag<'static>>),
     ) -> Option<(Arc<str>, Arc<EntityTag<'static>>)> {
-        self.cache_table.lock().unwrap_or_else(PoisonError::into_inner).insert(key.into(), cache)
+        self.cache_table
+            .as_ref()?
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .insert(key.into(), cache)
     }
 }

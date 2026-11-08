@@ -67,32 +67,34 @@ impl ReloadableHandlebars {
     }
 
     /// Reload templates if needed.
+    ///
+    /// A template that fails to reload does not stop the others from being reloaded, and the first error is returned.
     #[inline]
     pub fn reload_if_needed(&mut self) -> Result<(), Box<TemplateError>> {
-        for (&name, (file_path, mtime)) in &mut self.files {
-            let metadata = file_path
-                .metadata()
-                .map_err(|err| TemplateError::from((err, String::from(name))))?;
+        let mut first_error = None;
 
-            let (reload, new_mtime) = match mtime {
-                Some(mtime) => match metadata.modified() {
-                    Ok(new_mtime) => (new_mtime > *mtime, Some(new_mtime)),
-                    Err(_) => (true, None),
-                },
-                None => match metadata.modified() {
-                    Ok(new_mtime) => (true, Some(new_mtime)),
-                    Err(_) => (true, None),
+        for (&name, (file_path, mtime)) in &mut self.files {
+            let new_mtime = match file_path.metadata() {
+                Ok(metadata) => metadata.modified().ok(),
+                Err(err) => {
+                    first_error
+                        .get_or_insert(Box::new(TemplateError::from((err, String::from(name)))));
+
+                    continue;
                 },
             };
 
-            if reload {
-                self.handlebars.register_template_file(name, &file_path)?;
-
-                *mtime = new_mtime;
+            if new_mtime.is_none() || new_mtime != *mtime {
+                match self.handlebars.register_template_file(name, file_path) {
+                    Ok(()) => *mtime = new_mtime,
+                    Err(err) => {
+                        first_error.get_or_insert(Box::new(err));
+                    },
+                }
             }
         }
 
-        Ok(())
+        first_error.map_or(Ok(()), Err)
     }
 }
 

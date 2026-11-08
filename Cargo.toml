@@ -1,6 +1,6 @@
 [package]
 name = "rocket-include-handlebars"
-version = "0.14.0"
+version = "0.14.1"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2024"
 rust-version = "1.89"
@@ -13,20 +13,20 @@ license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
-rocket = "0.5"
-html-minifier = "5"
+rocket = "0.5.2"
+html-minifier = "6.0.1"
 lru_time_cache = "0.11"
-handlebars = "6"
+handlebars = "6.4.4"
 serde = "1.0.101"
-manifest-dir-macros = { version = "0.1.3", features = ["tuple"] }
-educe = { version = "0.7", default-features = false, features = ["Debug"] }
+manifest-dir-macros = { version = "0.1.20", features = ["tuple"] }
+educe = { version = "0.8.2", default-features = false, features = ["Debug"] }
 
 rocket-etag-if-none-match = "0.5"
 # `EntityTag` comes from `rocket-etag-if-none-match`, which does not enable `weak-hasher` itself. This direct dependency turns that feature on through feature unification, so it has to keep resolving to the very same version of `entity-tag` that `rocket-etag-if-none-match` depends on.
-entity-tag = { version = "0.2", features = ["weak-hasher"] }
+entity-tag = { version = "0.2.2", features = ["weak-hasher"] }
 
 [dev-dependencies]
-serde_json = "1"
+serde_json = "1.0.154"
 
 [features]
 helper_inc = []
@@ -35,6 +35,8 @@ helper_eq_str = []
 helper_ne_str = []
 helpers = ["helper_inc", "helper_dec", "helper_eq_str", "helper_ne_str"]
 
-# No public item is feature-gated, so `doc_cfg` is not needed here. `all-features` is only turned on to make docs.rs list every available helper feature.
+preserve_json_order = ["handlebars/preserve_json_order"]
+
+# No public item is feature-gated, so `doc_cfg` is not needed here. `all-features` is only turned on to make docs.rs list every available optional feature.
 [package.metadata.docs.rs]
 all-features = true

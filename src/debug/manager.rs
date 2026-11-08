@@ -32,22 +32,16 @@ impl HandlebarsContextManager {
         name: S,
         context: V,
     ) -> HandlebarsResponse {
-        self.handlebars
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .render(name.as_ref(), &context)
-            .map(|html| {
-                let etag = compute_data_etag(html.as_bytes());
+        let html = self.render(name, context);
+        let etag = compute_data_etag(html.as_bytes());
 
-                if etag_if_none_match.weak_eq(&etag) {
-                    HandlebarsResponse::not_modified()
-                } else {
-                    let html = if minify { html_minifier::minify(html).unwrap() } else { html };
+        if etag_if_none_match.weak_eq(&etag) {
+            return HandlebarsResponse::not_modified_with_etag(&etag);
+        }
 
-                    HandlebarsResponse::build_not_cache(html, etag)
-                }
-            })
-            .unwrap()
+        let html = if minify { html_minifier::minify(&html).unwrap_or(html) } else { html };
+
+        HandlebarsResponse::build_not_cache(html, etag)
     }
 
     /// Render a template.

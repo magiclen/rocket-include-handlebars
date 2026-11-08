@@ -1,4 +1,7 @@
-/// Used for retrieving and rendering the file you input through the macro `handlebars_resources_initialize!` as a `HandlebarsResponse` instance with rendered HTML. When its `respond_to` method is called, three HTTP headers, **Content-Type**, **Content-Length** and **Etag**, will be automatically added, and the rendered HTML can optionally not be minified.
+/// Render a registered template as a `HandlebarsResponse`.
+/// A `200 OK` response includes `Content-Type`, `Content-Length`, and `ETag`.
+/// A `304 Not Modified` response includes the `ETag` and has no body.
+/// You can turn off HTML minification.
 #[macro_export]
 macro_rules! handlebars_response {
     ( $cm:expr, $etag_if_none_match:expr, $name:expr ) => {
@@ -57,11 +60,7 @@ macro_rules! handlebars_response {
         }
     };
     ( auto_minify $cm:expr, $etag_if_none_match:expr, $name:expr, $data:expr ) => {
-        if cfg!(debug_assertions) {
-            handlebars_response!(disable_minify $cm, $etag_if_none_match, $name, $data)
-        } else {
-            handlebars_response!(enable_minify $cm, $etag_if_none_match, $name, $data)
-        }
+        $cm.build(&$etag_if_none_match, !cfg!(debug_assertions), $name, &$data)
     };
 }
 
@@ -70,20 +69,20 @@ macro_rules! handlebars_response {
 macro_rules! handlebars_resources_initializer {
     ( $($name:expr => $path:expr), * $(,)* ) => {
         {
-            $crate::HandlebarsResponse::fairing(|handlebars| {
+            $crate::HandlebarsResponse::fairing(|_handlebars| {
                 $crate::handlebars_resources_initialize!(
-                    handlebars
-                    $(, $name => $path)*
+                    _handlebars,
+                    $($name => $path),*
                 );
             })
         }
     };
     ( $capacity:expr; $($name:expr => $path:expr), * $(,)*  ) => {
         {
-            $crate::HandlebarsResponse::fairing_cache(|handlebars| {
+            $crate::HandlebarsResponse::fairing_cache(|_handlebars| {
                 $crate::handlebars_resources_initialize!(
-                    handlebars
-                    $(, $name => $path)*
+                    _handlebars,
+                    $($name => $path),*
                 );
 
                 $capacity
